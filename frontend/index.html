@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hostel Grievance Portal - Login to manage your complaints" />
+  <title>Login | Hostel Grievance Portal</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-icon">🏠</div>
+        <h1>Hostel Grievance Portal</h1>
+        <p>Login to your account</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email"
+            placeholder="you@example.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password"
+            placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <div id="loginError" class="text-muted" style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;display:none;"></div>
+
+        <button type="submit" class="btn-auth" id="loginBtn">
+          <span id="loginBtnText">Sign In</span>
+          <span id="loginSpinner" class="spinner" style="display:none;"></span>
+        </button>
+      </form>
+
+      <div class="divider"></div>
+
+      <p class="auth-link">
+        Don't have an account? <a href="register.html">Register here</a>
+      </p>
+      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+        Admin? Use your admin credentials above.
+      </p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Load environment first, then auth -->
+  <script src="js/env.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // If already logged in, redirect
+    const token = localStorage.getItem('hgp_token');
+    const user = JSON.parse(localStorage.getItem('hgp_user') || 'null');
+    if (token && user) {
+      window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const spinner = document.getElementById('loginSpinner');
+      const errEl = document.getElementById('loginError');
+
+      errEl.style.display = 'none';
+      btnText.style.display = 'none';
+      spinner.style.display = 'inline-block';
+      btn.disabled = true;
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const data = await apiPost('/api/login', { email, password });
+        localStorage.setItem('hgp_token', data.token);
+        localStorage.setItem('hgp_user', JSON.stringify(data.user));
+        showToast('Welcome back, ' + data.user.name + '!', 'success');
+        setTimeout(() => {
+          window.location.href = data.user.role === 'admin'
+            ? 'admin-dashboard.html'
+            : 'student-dashboard.html';
+        }, 600);
+      } catch (err) {
+        errEl.textContent = err.message || 'Login failed.';
+        errEl.style.display = 'block';
+      } finally {
+        btnText.style.display = 'inline';
+        spinner.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

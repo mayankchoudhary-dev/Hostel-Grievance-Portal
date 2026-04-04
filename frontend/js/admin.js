@@ -5,6 +5,14 @@
    logout, statusBadge, priorityBadge, catBadge, formatDate,
    renderPagination, showSection, openModal, closeModal, Chart, API_BASE */
 
+// Connection pool for better reliability
+const connectionPool = {
+  maxRetries: 3,
+  retryDelay: 1000,
+  timeout: 10000,
+  activeRequests: new Map()
+};
+
 // ── State ─────────────────────────────────────────────────────
 let adminCurrentPage = 1;
 let statusChartMini = null, categoryChartMini = null;

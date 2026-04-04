@@ -56,8 +56,8 @@
   <script src="js/auth.js"></script>
   <script>
     // If already logged in, redirect
-    const token = localStorage.getItem('hgp_token');
-    const user = JSON.parse(localStorage.getItem('hgp_user') || 'null');
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (token && user) {
       window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
     }
@@ -79,8 +79,8 @@
 
       try {
         const data = await apiPost('/api/login', { email, password });
-        localStorage.setItem('hgp_token', data.token);
-        localStorage.setItem('hgp_user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         showToast('Welcome back, ' + data.user.name + '!', 'success');
         setTimeout(() => {
           window.location.href = data.user.role === 'admin'

@@ -45,82 +45,196 @@ async function apiPost(endpoint, body) {
 }
 
 async function apiGet(endpoint) {
-  const token = localStorage.getItem('hgp_token');
   console.log("API GET:", endpoint); // Debug log
-  console.log("Token:", token); // Debug log
   console.log("API_BASE:", API_BASE); // Debug log
+  console.log("Token:", localStorage.getItem('token')); // Debug log
+  console.log("User role:", localStorage.getItem('userRole')); // Debug log
   
-  // Check if admin endpoint and verify admin role
-  if (endpoint.includes('/admin/')) {
-    const user = JSON.parse(localStorage.getItem('hgp_user') || '{}');
-    console.log("User role:", user.role); // Debug log
-    if (user.role !== 'admin') {
-      console.error("❌ Admin access required but user is:", user.role);
-      throw new Error('Admin access required');
-    }
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error("No token found in localStorage");
+    showToast('Please login first.', 'error');
+    return null;
   }
-  
-  try {
-    console.log("Making request to:", API_BASE + endpoint); // Debug log
-    const res = await fetch(API_BASE + endpoint, {
-      headers: { Authorization: `Bearer ${token}` },
+
+  // Check if same request is already in progress
+  const requestKey = `${endpoint}_${Date.now()}`;
+  if (connectionPool.activeRequests.has(requestKey)) {
+    console.log("🔄 Request already in progress, waiting...");
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (!connectionPool.activeRequests.has(requestKey)) {
+          clearInterval(checkInterval);
+          return apiGet(endpoint); // Retry the request
+        }
+      }, 500);
     });
-    console.log("Response status:", res.status); // Debug log
-    console.log("Response headers:", [...res.headers.entries()]); // Debug log
-    
-    const data = await res.json();
-    console.log("Response data:", data); // Debug log
-    console.log("Response data success:", data.success); // Debug log
-    console.log("Response ok:", res.ok); // Debug log
-    
-    if (!res.ok || !data.success) {
-      console.log("Request failed - ok:", res.ok, "success:", data.success);
-      throw new Error(data.message || 'Request failed');
+  }
+
+  connectionPool.activeRequests.set(requestKey, true);
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= connectionPool.maxRetries; attempt++) {
+    try {
+      console.log(`🔄 Attempt ${attempt} for ${endpoint}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
+      
+      const res = await fetch(API_BASE + endpoint, {
+        method: 'GET',
+        headers,
+        mode: 'cors',
+        cache: 'no-cache',
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      connectionPool.activeRequests.delete(requestKey);
+
+      // Check if response is ok
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`❌ Attempt ${attempt} failed:`, res.status, res.statusText);
+        console.error('Response body:', errorText);
+        lastError = new Error(`HTTP ${res.status}: ${res.statusText}`);
+        
+        if (attempt < connectionPool.maxRetries) {
+          console.log(`⏳ Waiting ${connectionPool.retryDelay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, connectionPool.retryDelay));
+          continue;
+        } else {
+          throw lastError;
+        }
+      }
+
+      const data = await res.json();
+      console.log(`✅ Attempt ${attempt} successful:`, res.status);
+      console.log("Response headers:", Object.fromEntries(res.headers.entries()));
+      console.log("Response data success:", data.success);
+
+      if (!data.success) {
+        console.error('API returned success=false:', data);
+        throw new Error(data.message || 'Request failed');
+      }
+
+      return data;
+    } catch (err) {
+      connectionPool.activeRequests.delete(requestKey);
+      console.error(`❌ Attempt ${attempt} error:`, err.message);
+      console.error("Error stack:", err.stack);
+      lastError = err;
+      
+      if (attempt < connectionPool.maxRetries) {
+        console.log(`⏳ Waiting ${connectionPool.retryDelay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, connectionPool.retryDelay));
+        continue;
+      } else {
+        // Final attempt failed - show user friendly error
+        const errorMessage = err.message || 'Network connection failed';
+        console.error(`💥 Final attempt ${attempt} failed:`, errorMessage);
+        showToast(`Connection failed: ${errorMessage}. Please check your internet connection and try again.`, 'error');
+        throw lastError || new Error(errorMessage);
+      }
     }
-    return data;
-  } catch (error) {
-    console.error("API GET Error:", error); // Debug log
-    console.error("Error stack:", error.stack); // Debug log
-    throw error;
   }
 }
 
 async function apiPut(endpoint, body) {
-  const token = localStorage.getItem('hgp_token');
-  const res = await fetch(API_BASE + endpoint, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
-  return data;
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error("No token found in localStorage");
+    showToast('Please login first.', 'error');
+    return null;
+  }
+
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Request failed');
+    return data;
+  } catch (error) {
+    console.error("API PUT Error:", error);
+    throw error;
+  }
 }
 
 async function apiDelete(endpoint) {
-  const token = localStorage.getItem('hgp_token');
-  const res = await fetch(API_BASE + endpoint, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
-  return data;
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error("No token found in localStorage");
+    showToast('Please login first.', 'error');
+    return null;
+  }
+
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Request failed');
+    return data;
+  } catch (error) {
+    console.error("API DELETE Error:", error);
+    throw error;
+  }
 }
 
 async function apiPostForm(endpoint, formData) {
-  const token = localStorage.getItem('hgp_token');
-  const res = await fetch(API_BASE + endpoint, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  });
-  const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
-  return data;
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error("No token found in localStorage");
+    showToast('Please login first.', 'error');
+    return null;
+  }
+
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Request failed');
+    return data;
+  } catch (error) {
+    console.error("API POST Form Error:", error);
+    throw error;
+  }
 }
 
 /* -------------------------------------------------------
@@ -185,8 +299,8 @@ function closeModal(id) {
    Auth Guard
 ------------------------------------------------------- */
 function requireAuth(role) {
-  const token = localStorage.getItem('hgp_token');
-  const user = JSON.parse(localStorage.getItem('hgp_user') || 'null');
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
   if (!token || !user) {
     window.location.href = 'index.html';
     return null;
@@ -199,8 +313,8 @@ function requireAuth(role) {
 }
 
 function logout() {
-  localStorage.removeItem('hgp_token');
-  localStorage.removeItem('hgp_user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
   window.location.href = 'index.html';
 }
 

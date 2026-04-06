@@ -334,7 +334,7 @@
         if (error.message.includes('timeout')) {
           messageEl.textContent = 'Server is not responding. Please check if the backend server is running on port 5001 and try again.';
         } else if (error.message.includes('Failed to fetch')) {
-          messageEl.textContent = 'Cannot connect to server. Please check your internet connection and ensure the backend is running on http://localhost:5001.';
+          messageEl.textContent = 'Cannot connect to server. Please check your internet connection and ensure the backend is running on https://hostel-grievance-portal.onrender.com/.';
         } else if (error.message.includes('CORS')) {
           messageEl.textContent = 'CORS error. Please check server configuration.';
         } else {

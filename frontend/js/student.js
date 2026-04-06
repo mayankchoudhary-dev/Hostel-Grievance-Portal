@@ -49,10 +49,10 @@ function initSocket() {
   try {
     // Dynamic import from CDN if not preloaded
     const script = document.createElement('script');
-    script.src = window.ENV.API_BASE_URL + '/socket.io/socket.io.js';
+    script.src = import.meta.env.VITE_API_BASE_URL + '/socket.io/socket.io.js';
     script.onload = () => {
       /* global io */
-      socket = io(window.ENV.API_BASE_URL);
+      socket = io(import.meta.env.VITE_API_BASE_URL);
       socket.on('connect', () => {
         indicator.textContent = '🟢 Live';
         indicator.style.color = 'var(--success)';
@@ -244,7 +244,7 @@ function viewComplaint(c) {
       <div><strong>Priority:</strong> ${priorityBadge(c.priority)}</div>
       <div><strong>Description:</strong><br/><p style="color:var(--text-secondary);margin-top:0.25rem;">${escHtml(c.description)}</p></div>
       ${c.admin_remark ? `<div style="background:rgba(99,102,241,0.08);border-radius:8px;padding:0.75rem;"><strong>Admin Remark:</strong><br/><p style="color:var(--text-secondary);margin-top:0.25rem;">${escHtml(c.admin_remark)}</p></div>` : ''}
-      ${c.image_url ? `<div><strong>Attached Image:</strong><br/><img src="${API_BASE}/uploads/${c.image_url}" class="complaint-image" style="margin-top:0.5rem;" alt="Complaint image"/></div>` : ''}
+      ${c.image_url ? `<div><strong>Attached Image:</strong><br/><img src="${import.meta.env.VITE_API_BASE_URL}/uploads/${c.image_url}" class="complaint-image" style="margin-top:0.5rem;" alt="Complaint image"/></div>` : ''}
       <div style="color:var(--text-muted);font-size:0.8rem;">Submitted: ${formatDate(c.created_at)}</div>
     </div>
   `;

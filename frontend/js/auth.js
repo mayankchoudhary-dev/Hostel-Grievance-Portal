@@ -1,7 +1,7 @@
 // js/auth.js - Shared utilities: API helpers, toast, theme, auth guards
 // =============================================================
 
-const API_BASE = window.ENV.API_BASE_URL;
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // Connection pool for better reliability
 const connectionPool = {

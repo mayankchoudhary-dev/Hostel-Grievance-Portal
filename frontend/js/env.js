@@ -1,3 +1,3 @@
 window.ENV = {
-  API_BASE_URL: "https://hostel-grievance-portal.onrender.com"
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL
 };

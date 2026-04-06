@@ -38,8 +38,9 @@ app.use(helmet({
 // ============================================================
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || '*',
+    origin: ["https://hostelhgp.netlify.app", "http://localhost:5500", "http://127.0.0.1:5500"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
   },
 });
 
@@ -60,7 +61,7 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: "https://hostelhgp.netlify.app",
+  origin: ["https://hostelhgp.netlify.app", "http://localhost:5500", "http://127.0.0.1:5500"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

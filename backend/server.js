@@ -60,7 +60,7 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: "https://your-netlify-app.netlify.app",
+  origin: "https://hostelhgp.netlify.app",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -160,7 +160,7 @@ app.get('/api/test-images', (_req, res) => {
       uploadsDir: uploadsDir,
       files: files,
       imageFiles: imageFiles,
-      testUrls: imageFiles.map(file => `http://localhost:5001/uploads/${file}`)
+      testUrls: imageFiles.map(file => `https://hostel-grievance-portal.onrender.com/uploads/${file}`)
     });
   } catch (err) {
     res.status(500).json({

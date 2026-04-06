@@ -3,6 +3,14 @@
 
 const API_BASE = window.ENV.API_BASE_URL;
 
+// Connection pool for better reliability
+const connectionPool = {
+  maxRetries: 3,
+  retryDelay: 1000,
+  timeout: 10000,
+  activeRequests: new Map()
+};
+
 /* -------------------------------------------------------
    API Helpers
 ------------------------------------------------------- */
@@ -10,12 +18,41 @@ const API_BASE = window.ENV.API_BASE_URL;
 async function testConnection() {
   try {
     console.log("Testing connection to:", API_BASE + '/api/health');
-    const res = await fetch(API_BASE + '/api/health');
+    console.log("Current API_BASE:", API_BASE);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
+    
+    const res = await fetch(API_BASE + '/api/health', {
+      method: 'GET',
+      signal: controller.signal,
+      cache: 'no-cache',
+      mode: 'cors'
+    });
+    
+    clearTimeout(timeoutId);
+    
+    console.log("Health check response status:", res.status);
+    console.log("Health check response headers:", Object.fromEntries(res.headers.entries()));
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
     const data = await res.json();
-    console.log("Health check response:", data);
-    return data;
+    console.log("Health check response data:", data);
+    
+    if (data.success) {
+      console.log("✅ Backend connection verified successfully");
+      return data;
+    } else {
+      throw new Error('Backend health check failed');
+    }
   } catch (error) {
-    console.error("Connection test failed:", error);
+    console.error("❌ Connection test failed:", error);
+    if (error.name === 'AbortError') {
+      throw new Error('Connection timeout - server not responding');
+    }
     throw error;
   }
 }
@@ -25,22 +62,95 @@ async function apiPost(endpoint, body) {
   console.log("API_BASE:", API_BASE); // Debug log
   console.log("Body:", body); // Debug log
   
-  try {
-    const res = await fetch(API_BASE + endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    console.log("POST Response status:", res.status); // Debug log
-    
-    const data = await res.json();
-    console.log("POST Response data:", data); // Debug log
-    
-    if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
-    return data;
-  } catch (error) {
-    console.error("API POST Error:", error); // Debug log
-    throw error;
+  // Registration and login endpoints don't require authentication
+  const isPublicEndpoint = endpoint === '/api/register' || endpoint === '/api/login';
+  
+  if (!isPublicEndpoint) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error("No token found in localStorage");
+      showToast('Please login first.', 'error');
+      return null;
+    }
+  }
+
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  
+  // Add authorization header only for authenticated endpoints
+  if (!isPublicEndpoint) {
+    headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+  }
+
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= connectionPool.maxRetries; attempt++) {
+    try {
+      console.log(`🔄 POST Attempt ${attempt} for ${endpoint}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
+      
+      const res = await fetch(API_BASE + endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        mode: 'cors',
+        cache: 'no-cache',
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      // Check if response is ok
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`❌ POST Attempt ${attempt} failed:`, res.status, res.statusText);
+        console.error('Response body:', errorText);
+        lastError = new Error(`HTTP ${res.status}: ${res.statusText}`);
+        
+        if (attempt < connectionPool.maxRetries) {
+          console.log(`⏳ Waiting ${connectionPool.retryDelay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, connectionPool.retryDelay));
+          continue;
+        } else {
+          throw lastError;
+        }
+      }
+
+      const data = await res.json();
+      console.log(`✅ POST Attempt ${attempt} successful:`, res.status);
+      console.log("Response data:", data);
+
+      // Validate response structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid server response format');
+      }
+
+      if (!data.success) {
+        console.error('API returned success=false:', data);
+        throw new Error(data.message || 'Request failed');
+      }
+
+      return data;
+    } catch (err) {
+      console.error(`❌ POST Attempt ${attempt} error:`, err.message);
+      console.error("Error stack:", err.stack);
+      lastError = err;
+      
+      if (attempt < connectionPool.maxRetries) {
+        console.log(`⏳ Waiting ${connectionPool.retryDelay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, connectionPool.retryDelay));
+        continue;
+      } else {
+        // Final attempt failed - show user friendly error
+        const errorMessage = err.message || 'Network connection failed';
+        console.error(`💥 Final POST attempt ${attempt} failed:`, errorMessage);
+        showToast(`Connection failed: ${errorMessage}. Please check your internet connection and try again.`, 'error');
+        throw lastError || new Error(errorMessage);
+      }
+    }
   }
 }
 

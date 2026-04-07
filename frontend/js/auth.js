@@ -1,7 +1,8 @@
 // js/auth.js - Shared utilities: API helpers, toast, theme, auth guards
 // =============================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+// API_BASE will be set in index.html
+const API_BASE = window.API_BASE || 'https://hostel-grievance-portal.onrender.com';
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -425,7 +426,7 @@ function requireAuth(role) {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = 'index.html';
+  window.location.href = 'https://hostel-grievance-portal.onrender.com/login.html';
 }
 
 /* -------------------------------------------------------

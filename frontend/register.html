@@ -256,21 +256,34 @@
       </form>
 
       <div class="divider"></div>
-      <p class="auth-link">Already have an account? <a href="index.html">Sign in</a></p>
+      <p class="auth-link">Already have an account? <a href="https://hostel-grievance-portal.onrender.com/login.html">Sign in</a></p>
     </div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
   
   <!-- Load environment first, then auth -->
-  <script src="js/env.js"></script>
+  <script>
+    // Set API_BASE directly for deployment
+    window.API_BASE = 'https://hostel-grievance-portal.onrender.com';
+    console.log('🌍 API_BASE set to:', window.API_BASE);
+  </script>
   <script src="js/auth.js"></script>
   <script>
     // Test backend connection before proceeding
     async function initializePage() {
       console.log("🚀 Initializing registration page...");
-      const API_BASE = import.meta.env.VITE_API_BASE_URL;
-      console.log("🔍 Checking API_BASE:", API_BASE);
+      console.log("🔍 Checking API_BASE:", window.API_BASE);
+      
+      // Make sure API_BASE is defined
+      if (!window.API_BASE) {
+        console.error("❌ API_BASE is undefined!");
+        const messageEl = document.getElementById('registerMessage');
+        messageEl.textContent = 'API configuration error. Please check environment variables.';
+        messageEl.className = 'error-message';
+        messageEl.style.display = 'block';
+        return;
+      }
       
       // Clean up old tokens to avoid conflicts
       console.log("🧹 Cleaning up old tokens...");
@@ -278,68 +291,52 @@
       localStorage.removeItem('hgp_user');
       console.log("🧹 Old tokens removed");
       
-      // Show debug panel
-      const debugPanel = document.getElementById('debugPanel');
-      const debugInfo = document.getElementById('debugInfo');
-      debugPanel.style.display = 'block';
-      
-      debugInfo.innerHTML = `
-        API_BASE: ${API_BASE}<br>
-        User Agent: ${navigator.userAgent}<br>
-        Current URL: ${window.location.href}<br>
-        LocalStorage: ${JSON.stringify(localStorage)}<br>
-        Status: <span style="color: yellow;">Testing connection...</span>
-      `;
-      
       try {
         // First test health endpoint
-        debugInfo.innerHTML += '<br>Step 1: Testing health endpoint...';
-        const healthCheck = await testConnection();
-        console.log("✅ Backend health check passed:", healthCheck);
-        debugInfo.innerHTML += '<br>✅ Health check passed';
+        console.log("🔍 Testing health endpoint...");
+        const healthResponse = await fetch(window.API_BASE + '/api/health', {
+          method: 'GET',
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+        
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json();
+          console.log("✅ Backend health check passed:", healthData);
+        } else {
+          console.warn("⚠️ Health check failed, but proceeding...");
+        }
         
         // Test register endpoint specifically
-        debugInfo.innerHTML += '<br>Step 2: Testing register endpoint...';
         console.log("🔍 Testing register endpoint availability...");
-        const registerTest = await fetch(API_BASE + '/api/register', {
+        const registerTest = await fetch(window.API_BASE + '/api/register', {
           method: 'OPTIONS',
           mode: 'cors',
           cache: 'no-cache'
         });
         console.log("Register endpoint OPTIONS response:", registerTest.status);
-        debugInfo.innerHTML += `<br>Register endpoint status: ${registerTest.status}`;
         
         if (registerTest.status === 200 || registerTest.status === 204) {
           console.log("✅ Register endpoint is accessible");
-          debugInfo.innerHTML += '<br>✅ Register endpoint accessible';
         } else {
           console.warn("⚠️ Register endpoint may have issues, but proceeding...");
-          debugInfo.innerHTML += '<br>⚠️ Register endpoint may have issues';
         }
         
         console.log("✅ Backend connection fully verified");
-        debugInfo.innerHTML += '<br><span style="color: green;">✅ Backend connection verified</span>';
-        
-        // Hide debug panel after 3 seconds if everything is working
-        setTimeout(() => {
-          debugPanel.style.display = 'none';
-        }, 3000);
         
       } catch (error) {
         console.error("❌ Backend connection failed:", error);
-        debugInfo.innerHTML += `<br><span style="color: red;">❌ Connection failed: ${error.message}</span>`;
-        
         const messageEl = document.getElementById('registerMessage');
         
         // Provide more specific error messages
         if (error.message.includes('timeout')) {
           messageEl.textContent = 'Server is not responding. Please check if the backend server is running on port 5001 and try again.';
         } else if (error.message.includes('Failed to fetch')) {
-          messageEl.textContent = 'Cannot connect to server. Please check your internet connection and ensure the backend is running on https://hostel-grievance-portal.onrender.com/.';
+          messageEl.textContent = 'Cannot connect to server. Please check your internet connection and ensure the backend is running on https://hostel-grievance-portal.onrender.com.';
         } else if (error.message.includes('CORS')) {
           messageEl.textContent = 'CORS error. Please check server configuration.';
         } else {
-          messageEl.textContent = 'Connection error: ' + error.message + '. Please try again.';
+          messageEl.textContent = 'Connection error: ' + error.message + '. Please ensure backend server is running.';
         }
         
         messageEl.className = 'error-message';
@@ -478,93 +475,171 @@
       }
 
       // Show loading state
-      btnText.style.display = 'none';
-      spinner.style.display = 'inline-block';
-      btn.disabled = true;
 
-      // Add timeout to prevent infinite loading
-      const loadingTimeout = setTimeout(() => {
-        if (btn.disabled) {
-          console.error("⚠️ Registration request timed out");
-          messageEl.textContent = 'Registration request timed out. Please try again.';
-          messageEl.className = 'error-message';
-          messageEl.style.display = 'block';
-          
-          btnText.style.display = 'inline';
-          spinner.style.display = 'none';
-          btn.disabled = false;
-        }
-      }, 15000); // 15 second timeout
+// Confirm password validation
+document.getElementById('confirmPassword').addEventListener('input', (e) => {
+  const password = document.getElementById('password').value;
+  if (e.target.value !== password) {
+    e.target.style.borderColor = '#ef4444';
+  } else {
+    e.target.style.borderColor = '#10b981';
+  }
+});
 
-      try {
-        console.log("🚀 Starting registration request...");
-        const data = await apiPost('/api/register', { name, email, password, room_no });
-        clearTimeout(loadingTimeout);
-        
-        console.log("✅ Registration successful:", data);
-        
-        // Validate response structure
-        if (!data || typeof data !== 'object') {
-          throw new Error('Invalid server response. Please try again.');
-        }
-        
-        if (!data.success) {
-          throw new Error(data.message || 'Registration failed. Please try again.');
-        }
-        
-        if (!data.token) {
-          throw new Error('Server did not return authentication token. Please try logging in manually.');
-        }
-        
-        if (!data.user) {
-          throw new Error('Server did not return user information. Please try again.');
-        }
-        
-        // Store user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        console.log("✅ User data stored:", {
-          token: data.token ? 'Present' : 'Missing',
-          user: data.user ? 'Present' : 'Missing'
-        });
-        
-        // Show success message
-        messageEl.textContent = 'Account created successfully! Redirecting to dashboard...';
-        messageEl.className = 'success-message';
-        messageEl.style.display = 'block';
-        
-        showToast('Welcome to Hostel Grievance Portal, ' + data.user.name + '!', 'success');
-        
-        // Redirect to dashboard
-        setTimeout(() => { 
-          window.location.href = 'student-dashboard.html'; 
-        }, 1500);
-        
-      } catch (err) {
-        clearTimeout(loadingTimeout);
-        console.error("❌ Registration failed:", err);
-        
-        // Provide specific error messages
-        let errorMessage = err.message || 'Registration failed. Please try again.';
-        
-        if (err.message.includes('token')) {
-          errorMessage = 'Authentication issue. Please try logging in after registration.';
-        } else if (err.message.includes('network') || err.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (err.message.includes('timeout')) {
-          errorMessage = 'Request timed out. Please try again.';
-        }
-        
-        messageEl.textContent = errorMessage;
-        messageEl.className = 'error-message';
-        messageEl.style.display = 'block';
-      } finally {
-        btnText.style.display = 'inline';
-        spinner.style.display = 'none';
-        btn.disabled = false;
-      }
+// Form submission
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); // VERY IMPORTANT - prevents page refresh
+  
+  const btn = document.getElementById('registerBtn');
+  const btnText = document.getElementById('registerBtnText');
+  const spinner = document.getElementById('registerSpinner');
+  const messageEl = document.getElementById('registerMessage');
+
+  // Reset state
+  messageEl.style.display = 'none';
+  btnText.style.display = 'none';
+  spinner.style.display = 'inline-block';
+  btn.disabled = true;
+
+  // 15 second timeout to prevent infinite loading
+  const loadingTimeout = setTimeout(() => {
+    if (btn.disabled) {
+      messageEl.textContent = 'Registration request timed out. Please try again.';
+      messageEl.className = 'error-message';
+      messageEl.style.display = 'block';
+      btnText.style.display = 'inline';
+      spinner.style.display = 'none';
+      btn.disabled = false;
+    }
+  }, 15000); // 15 second timeout
+
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const room_no = document.getElementById('room_no').value.trim();
+
+  try {
+    console.log("🚀 Starting registration request...");
+    console.log("📤 Sending:", { name, email, room_no, password: password ? "***" : undefined });
+    
+    // Direct fetch with proper error handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    
+    const response = await fetch(window.API_BASE + '/api/register', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        room_no
+      }),
+      mode: 'cors',
+      cache: 'no-cache',
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
+    
+    console.log("📥 Response status:", response.status);
+    console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Registration failed:", response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const responseText = await response.text();
+    console.log("📄 Raw response text:", responseText);
+    
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('Empty response from server');
+    }
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("❌ JSON parse failed:", parseError);
+      throw new Error('Invalid JSON response from server');
+    }
+    
+    console.log("✅ Registration response:", data);
+    
+    // Validate response structure
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid server response. Please try again.');
+    }
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Registration failed. Please try again.');
+    }
+    
+    if (!data.token) {
+      throw new Error('Server did not return authentication token. Please try logging in manually.');
+    }
+    
+    if (!data.user) {
+      throw new Error('Server did not return user information. Please try again.');
+    }
+    
+    // Store user data
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    console.log("✅ User data stored:", {
+      token: data.token ? 'Present' : 'Missing',
+      user: data.user ? 'Present' : 'Missing',
+      role: data.user?.role || 'Unknown'
+    });
+    
+    // Show success message
+    messageEl.textContent = 'Account created successfully! Redirecting to dashboard...';
+    messageEl.className = 'success-message';
+    messageEl.style.display = 'block';
+    
+    showToast('Welcome to Hostel Grievance Portal, ' + data.user.name + '!', 'success');
+    
+    // Redirect to dashboard
+    setTimeout(() => { 
+      window.location.href = 'student-dashboard.html'; 
+    }, 1500);
+    
+  } catch (err) {
+    clearTimeout(loadingTimeout);
+    console.error("❌ Registration failed:", err);
+    
+    // Provide specific error messages
+    let errorMessage = err.message || 'Registration failed. Please try again.';
+    
+    if (err.message.includes('token')) {
+      errorMessage = 'Authentication issue. Please try logging in manually.';
+    } else if (err.message.includes('network') || err.message.includes('fetch')) {
+      errorMessage = 'Network error. Please check your connection and try again.';
+    } else if (err.message.includes('timeout')) {
+      errorMessage = 'Request timed out. Please try again.';
+    } else if (err.message.includes('409')) {
+      errorMessage = 'Email already registered. Please use a different email or login.';
+    } else if (err.message.includes('401')) {
+      errorMessage = 'Invalid credentials. Please check your information.';
+    } else if (err.message.includes('404')) {
+      errorMessage = 'Registration endpoint not found. Please check if the backend server is running correctly.';
+    }
+    
+    messageEl.textContent = errorMessage;
+    messageEl.className = 'error-message';
+    messageEl.style.display = 'block';
+  } finally {
+    btnText.style.display = 'inline';
+    spinner.style.display = 'none';
+    btn.disabled = false;
+  }
+});
   </script>
 </body>
 </html>

@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  script.src = import.meta.env.VITE_API_BASE_URL + '/socket.io/socket.io.js';
+  script.src = window.API_BASE + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */
-    socket = io(import.meta.env.VITE_API_BASE_URL);
+    socket = io(window.API_BASE);
     socket.on('connect', () => {
       indicator.textContent = '🟢 Live';
       indicator.style.color = 'var(--success)';
@@ -237,7 +237,7 @@ function viewComplaintAdmin(c) {
   if (c.image_url) {
     // Extract just the filename from any path format and decode spaces
     const filename = c.image_url.replace(/^\/uploads\//, '').replace(/^uploads\//, '').replace(/%20/g, ' ');
-    imageUrl = `${import.meta.env.VITE_API_BASE_URL}/api/images/${encodeURIComponent(filename)}`;
+    imageUrl = `${window.API_BASE}/api/images/${encodeURIComponent(filename)}`;
   }
   
   console.log("🔍 viewComplaintAdmin: Final image URL:", imageUrl); // Debug log

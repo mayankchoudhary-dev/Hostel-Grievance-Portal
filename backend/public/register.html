@@ -265,11 +265,10 @@
   <!-- Load environment first, then auth -->
   <script>
     // Set API_BASE directly for deployment
-   
+    window.API_BASE = 'http://localhost:5001';
     console.log('🌍 API_BASE set to:', window.API_BASE);
-  </script><script src="js/env.js"></script>
-<script src="js/auth.js"></script>
- 
+  </script>
+  <script src="js/auth.js"></script>
   <script>
     // Simple initialization - don't block page load
     document.addEventListener('DOMContentLoaded', () => {
@@ -356,8 +355,8 @@
         // Direct fetch with proper error handling
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
-        const response = await fetch(window.ENV.API_BASE_URL + '/api/register', {
         
+        const response = await fetch(window.API_BASE + '/api/register', {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

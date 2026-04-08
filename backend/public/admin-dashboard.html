@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Admin Dashboard - Hostel Grievance Portal" />
+  <title>Admin Dashboard | HGP</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <div>
+        <div class="sidebar-title">HGP Admin</div>
+        <div class="sidebar-subtitle">Warden Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Admin Menu</div>
+      <button class="nav-item active" id="navDashboard" onclick="showSection('dashboard')">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" id="navComplaints" onclick="showSection('complaints'); loadAllComplaints();">
+        <span class="nav-icon">📋</span><span>All Complaints</span>
+      </button>
+      <button class="nav-item" id="navAnalytics" onclick="showSection('analytics'); loadAnalytics();">
+        <span class="nav-icon">📈</span><span>Analytics</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarName">Admin</div>
+          <div class="user-role">Warden / Admin</div>
+        </div>
+      </div>
+      <button class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span><span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Admin Dashboard</div>
+        <div class="topbar-subtitle">Hostel Grievance Management System</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="dark-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+        <span id="socketIndicator" title="Live updates" style="font-size:0.75rem;color:var(--text-muted);">⚪ Offline</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ======= SECTION: DASHBOARD ======= -->
+      <section id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card total">
+            <div class="stat-icon">📁</div>
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total Complaints</div>
+          </div>
+          <div class="stat-card pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number" id="statPending">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card in-progress">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-number" id="statInProgress">0</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+          <div class="stat-card resolved">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" id="statResolved">0</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+        </div>
+
+        <!-- Mini charts -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Complaints by Status</h3>
+            <div class="chart-container">
+              <canvas id="statusChartMini" width="220" height="220"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Complaints by Category</h3>
+            <div class="chart-container">
+              <canvas id="categoryChartMini" width="220" height="220"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent 5 complaints -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Complaints</span>
+            <button class="btn btn-primary btn-sm" onclick="showSection('complaints'); loadAllComplaints();">Manage All</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrapper">
+              <table>
+                <thead><tr>
+                  <th>#</th><th>Student</th><th>Title</th><th>Category</th>
+                  <th>Status</th><th>Priority</th><th>Date</th>
+                </tr></thead>
+                <tbody id="recentComplaintsBody">
+                  <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: ALL COMPLAINTS ======= -->
+      <section id="sec-complaints" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 All Complaints</span>
+            <span id="complaintCount" class="text-muted"></span>
+          </div>
+          <div class="card-body" style="padding-bottom:0;">
+            <div class="filters-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input class="input" type="text" id="adminSearch" placeholder="Search by title, student..." />
+              </div>
+              <select class="input filter-select" id="adminFilterStatus">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+              <select class="input filter-select" id="adminFilterCategory">
+                <option value="">All Categories</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Water">Water</option>
+                <option value="Mess">Mess</option>
+                <option value="Cleanliness">Cleanliness</option>
+                <option value="Internet">Internet</option>
+                <option value="Other">Other</option>
+              </select>
+              <input class="input" type="date" id="adminDateFrom" style="max-width:140px;" title="From date" />
+              <input class="input" type="date" id="adminDateTo" style="max-width:140px;" title="To date" />
+              <button class="btn btn-primary btn-sm" onclick="loadAllComplaints(1)">Apply</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Reset</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Student</th><th>Room</th><th>Title</th>
+                <th>Category</th><th>Status</th><th>Priority</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="adminComplaintsBody">
+                <tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:1rem;">
+            <div id="adminPaginationContainer" class="pagination"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: ANALYTICS ======= -->
+      <section id="sec-analytics" style="display:none;">
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Status Distribution</h3>
+            <div class="chart-container">
+              <canvas id="statusChartLarge" width="300" height="300"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Category Distribution</h3>
+            <div class="chart-container">
+              <canvas id="categoryChartLarge" width="300" height="300"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-header"><span class="card-title">📊 Summary</span></div>
+          <div class="card-body">
+            <div id="analyticsSummary" class="stats-grid"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ======= VIEW MODAL ======= -->
+<div class="modal-overlay hidden" id="viewModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <span class="modal-title">📄 Complaint Details</span>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="viewModalBody"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<!-- ======= REMARK MODAL ======= -->
+<div class="modal-overlay hidden" id="remarkModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">💬 Add / Update Remark</span>
+      <button class="modal-close" onclick="closeModal('remarkModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="remarkComplaintId" />
+      <div class="form-group">
+        <label class="form-label-dark">Remark / Comment</label>
+        <textarea class="input" id="remarkText" rows="4" placeholder="Enter remark for the student..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('remarkModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRemark()">Save Remark</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/env.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -37,13 +37,13 @@ const app = express();
 const server = http.createServer(app);
 
 // ============================================================
-// Static File Serving
+// 1) Static File Serving (MUST BE FIRST)
 // ============================================================
 // Serve static frontend files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ============================================================
-// Security Middleware
+// 2) Security Middleware
 // ============================================================
 // Security headers
 app.use(helmet({
@@ -275,14 +275,18 @@ app.options('/uploads/*', (req, res) => {
 });
 
 // ============================================================
-// 404 Handler
+// 3) API Routes (AFTER static files)
+// ============================================================
+
+// ============================================================
+// 4) 404 Handler (MUST BE LAST)
 // ============================================================
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found.' });
 });
 
 // ============================================================
-// Middleware
+// 5) Global Error Handler (MUST BE LAST)
 // ============================================================
 
 // Global error handler with detailed logging
@@ -306,8 +310,11 @@ app.use((err, req, res, next) => {
 // Start server
 // ============================================================
 const PORT = process.env.PORT || 5001;
-server.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+
   console.log(`📂 Uploads served at http://localhost:${PORT}/uploads`);
   console.log(`🔗 Health check at http://localhost:${PORT}/api/health\n`);
 });

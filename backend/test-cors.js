@@ -20,7 +20,7 @@ app.get('/test-cors', (req, res) => {
   });
 });
 
-const PORT = 5002; // Different port to avoid conflicts
+const PORT = 5000; // Different port to avoid conflicts
 app.listen(PORT, () => {
   console.log(`🚀 CORS test server running on http://localhost:${PORT}`);
 });

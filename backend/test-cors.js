@@ -5,7 +5,7 @@ const app = express();
 
 // Test CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5500', 'https://hostelhgp.netlify.app'],
+  origin: ['http://localhost:5500', 'https://your-frontend-name.onrender.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

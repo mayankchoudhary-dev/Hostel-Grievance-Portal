@@ -32,10 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  script.src = window.API_BASE + '/socket.io/socket.io.js';
+  const backendUrl = window.API_BASE || 'http://localhost:5001';
+  script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */
-    socket = io(window.API_BASE);
+    socket = io(backendUrl);
     socket.on('connect', () => {
       indicator.textContent = '🟢 Live';
       indicator.style.color = 'var(--success)';

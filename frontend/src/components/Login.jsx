@@ -102,7 +102,7 @@ const Login = () => {
         <div className="divider"></div>
 
         <p className="auth-link">
-          Don't have an account? <a href="/register">Register here</a>
+          Don't have an account? <a href="/register.html">Register here</a>
         </p>
         <p className="auth-link" style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
           Admin? Use your admin credentials above.

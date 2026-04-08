@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .image-test { border: 1px solid #ddd; margin: 10px 0; padding: 10px; }
+        .image-test img { max-width: 200px; max-height: 200px; border: 1px solid #ccc; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Image Display Debug Tool</h1>
+    
+    <div class="test-section info">
+        <h2>Test Image URLs</h2>
+        <button onclick="testDirectImages()">Test Direct Image Access</button>
+        <button onclick="testWithAPIBase()">Test with API_BASE</button>
+        <button onclick="testComplaintImages()">Test Complaint Images</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        window.API_BASE = 'http://localhost:5001';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<h3>${new Date().toLocaleTimeString()}</h3><pre>${JSON.stringify(message, null, 2)}</pre>`;
+            results.appendChild(div);
+        }
+
+        function testDirectImages() {
+            log('Testing direct image access...', 'info');
+            
+            const testImages = [
+                '1775204357232-909725816-Screenshot 2026-04-03 130133.png',
+                '1775204783321-108096103-Screenshot 2026-04-03 130123.png',
+                '1775208965168-373557860-focus wallpaper.webp'
+            ];
+
+            testImages.forEach(imageName => {
+                const img = new Image();
+                img.onload = () => log(`SUCCESS: Direct load of ${imageName}`, 'success');
+                img.onerror = () => log(`FAILED: Direct load of ${imageName}`, 'error');
+                img.src = `${window.API_BASE}/uploads/${imageName}`;
+            });
+        }
+
+        function testWithAPIBase() {
+            log('Testing with API_BASE prefix...', 'info');
+            
+            const testImages = [
+                '/uploads/1775204357232-909725816-Screenshot 2026-04-03 130133.png',
+                '/uploads/1775204783321-108096103-Screenshot 2026-04-03 130123.png',
+                '/uploads/1775208965168-373557860-focus wallpaper.webp'
+            ];
+
+            testImages.forEach(imagePath => {
+                const img = new Image();
+                img.onload = () => log(`SUCCESS: API_BASE load of ${imagePath}`, 'success');
+                img.onerror = () => log(`FAILED: API_BASE load of ${imagePath}`, 'error');
+                img.src = `${window.API_BASE}${imagePath}`;
+            });
+        }
+
+        async function testComplaintImages() {
+            log('Testing complaint data with images...', 'info');
+            
+            try {
+                // Get auth token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    log('No auth token found. Please login first.', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${window.API_BASE}/api/complaints/my`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    log(`Failed to fetch complaints: ${response.status}`, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+                log(`Found ${data.complaints?.length || 0} complaints`, 'info');
+
+                if (data.complaints) {
+                    data.complaints.forEach(complaint => {
+                        if (complaint.image_url) {
+                            log(`Testing image for complaint #${complaint.id}: ${complaint.image_url}`, 'info');
+                            
+                            const img = new Image();
+                            img.onload = () => log(`SUCCESS: Complaint #${complaint.id} image loaded`, 'success');
+                            img.onerror = () => log(`FAILED: Complaint #${complaint.id} image failed - ${complaint.image_url}`, 'error');
+                            img.src = `${window.API_BASE}${complaint.image_url}`;
+                            
+                            // Also test the HTML structure
+                            const htmlImg = `<div class="image-test">
+                                <h4>Complaint #${complaint.id} Image Test</h4>
+                                <img src="${window.API_BASE}${complaint.image_url}" 
+                                     onerror="this.style.border='2px solid red'; this.alt='FAILED: ' + this.src;" 
+                                     onload="this.style.border='2px solid green';" 
+                                     alt="Test image">
+                                <p>URL: ${window.API_BASE}${complaint.image_url}</p>
+                            </div>`;
+                            
+                            const results = document.getElementById('results');
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = htmlImg;
+                            results.appendChild(tempDiv.firstElementChild);
+                        } else {
+                            log(`Complaint #${complaint.id} has no image`, 'info');
+                        }
+                    });
+                }
+            } catch (error) {
+                log(`Error testing complaint images: ${error.message}`, 'error');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testDirectImages();
+                setTimeout(testWithAPIBase, 1000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

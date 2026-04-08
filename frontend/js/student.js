@@ -244,7 +244,7 @@ function viewComplaint(c) {
       <div><strong>Priority:</strong> ${priorityBadge(c.priority)}</div>
       <div><strong>Description:</strong><br/><p style="color:var(--text-secondary);margin-top:0.25rem;">${escHtml(c.description)}</p></div>
       ${c.admin_remark ? `<div style="background:rgba(99,102,241,0.08);border-radius:8px;padding:0.75rem;"><strong>Admin Remark:</strong><br/><p style="color:var(--text-secondary);margin-top:0.25rem;">${escHtml(c.admin_remark)}</p></div>` : ''}
-      ${c.image_url ? `<div><strong>Attached Image:</strong><br/><img src="${window.API_BASE}/uploads/${c.image_url}" class="complaint-image" style="margin-top:0.5rem;" alt="Complaint image"/></div>` : ''}
+      ${c.image_url ? `<div><strong>Attached Image:</strong><br/><img src="${window.API_BASE}${c.image_url}" class="complaint-image" style="margin-top:0.5rem;" alt="Complaint image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/><div style="display:none;color:#ef4444;font-size:0.8rem;">Image not available</div></div>` : ''}
       <div style="color:var(--text-muted);font-size:0.8rem;">Submitted: ${formatDate(c.created_at)}</div>
     </div>
   `;

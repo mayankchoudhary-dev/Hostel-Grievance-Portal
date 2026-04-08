@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .image-test img { max-width: 300px; border: 2px solid #ddd; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .step { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>Image Display Fix - Final Test</h1>
+    
+    <div class="step">
+        <h2>Step 1: Check Backend Server</h2>
+        <button onclick="checkBackend()">Check Backend Status</button>
+        <div id="backendStatus"></div>
+    </div>
+
+    <div class="step">
+        <h2>Step 2: Test Image Directly</h2>
+        <button onclick="testImageDirect()">Test Image Loading</button>
+        <div id="imageTest"></div>
+    </div>
+
+    <div class="step">
+        <h2>Step 3: Test Complaint Data</h2>
+        <button onclick="testComplaintImage()">Test Complaint Image</button>
+        <div id="complaintTest"></div>
+    </div>
+
+    <div class="step">
+        <h2>Step 4: Manual URL Test</h2>
+        <button onclick="testManualURL()">Test Manual URL</button>
+        <div id="manualTest"></div>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        window.API_BASE = 'http://localhost:5001';
+        
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-section ${type}"><h3>${new Date().toLocaleTimeString()}</h3><pre>${message}</pre></div>`;
+        }
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<h3>${new Date().toLocaleTimeString()}</h3><pre>${JSON.stringify(message, null, 2)}</pre>`;
+            results.appendChild(div);
+        }
+
+        async function checkBackend() {
+            showResult('backendStatus', 'Checking backend server...', 'info');
+            
+            try {
+                const response = await fetch(`${window.API_BASE}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('backendStatus', `SUCCESS: Backend is running!\n\n${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult('backendStatus', `ERROR: Backend responded with ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult('backendStatus', `ERROR: Cannot connect to backend\n\n${error.message}\n\nSOLUTION: Start backend server with:\ncd backend && node server.js`, 'error');
+            }
+        }
+
+        function testImageDirect() {
+            showResult('imageTest', 'Testing direct image access...', 'info');
+            
+            const testImage = '/uploads/1775204357232-909725816-Screenshot 2026-04-03 130133.png';
+            const fullURL = `${window.API_BASE}${testImage}`;
+            
+            const img = new Image();
+            img.onload = () => {
+                showResult('imageTest', `SUCCESS: Image loaded!\n\nURL: ${fullURL}\n\n<img src="${fullURL}" style="max-width:200px;border:2px solid green;">`, 'success');
+            };
+            img.onerror = () => {
+                showResult('imageTest', `FAILED: Image cannot be loaded\n\nURL: ${fullURL}\n\nThis means:\n1. Backend server not running, OR\n2. File not found, OR\n3. CORS issue\n\nCheck browser console (F12) for exact error.`, 'error');
+            };
+            img.src = fullURL;
+        }
+
+        async function testComplaintImage() {
+            showResult('complaintTest', 'Testing complaint image data...', 'info');
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('complaintTest', 'ERROR: No auth token found\n\nPlease login first to test complaint images.', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${window.API_BASE}/api/complaints/my`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    showResult('complaintTest', `ERROR: Failed to fetch complaints (${response.status})`, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+                const complaintsWithImages = data.complaints?.filter(c => c.image_url) || [];
+                
+                if (complaintsWithImages.length === 0) {
+                    showResult('complaintTest', 'INFO: No complaints with images found\n\nSubmit a complaint with an image first.', 'warning');
+                    return;
+                }
+
+                const complaint = complaintsWithImages[0];
+                const imageURL = `${window.API_BASE}${complaint.image_url}`;
+                
+                showResult('complaintTest', `Found complaint with image:\n\nTitle: ${complaint.title}\nImage URL: ${complaint.image_url}\nFull URL: ${imageURL}\n\nTesting image...`, 'info');
+                
+                const img = new Image();
+                img.onload = () => {
+                    showResult('complaintTest', `SUCCESS: Complaint image loaded!\n\n<img src="${imageURL}" style="max-width:200px;border:2px solid green;">`, 'success');
+                };
+                img.onerror = () => {
+                    showResult('complaintTest', `FAILED: Complaint image cannot be loaded\n\nURL: ${imageURL}\n\nCheck browser console for exact error.`, 'error');
+                };
+                img.src = imageURL;
+                
+            } catch (error) {
+                showResult('complaintTest', `ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        function testManualURL() {
+            showResult('manualTest', 'Testing manual URL construction...', 'info');
+            
+            // Test all possible URL formats
+            const baseURL = 'http://localhost:5001';
+            const imageName = '1775204357232-909725816-Screenshot 2026-04-03 130133.png';
+            
+            const urls = [
+                `${baseURL}/uploads/${imageName}`,
+                `${baseURL}${imageName}`,
+                `http://localhost:5001/uploads/${imageName}`,
+                `http://127.0.0.1:5001/uploads/${imageName}`
+            ];
+            
+            let results = '';
+            urls.forEach((url, index) => {
+                const img = new Image();
+                img.onload = () => {
+                    results += `SUCCESS Format ${index + 1}: ${url}\n`;
+                    showResult('manualTest', results, 'success');
+                };
+                img.onerror = () => {
+                    results += `FAILED Format ${index + 1}: ${url}\n`;
+                    showResult('manualTest', results, 'error');
+                };
+                img.src = url;
+            });
+        }
+
+        // Auto-run backend check on page load
+        window.addEventListener('load', () => {
+            setTimeout(checkBackend, 1000);
+        });
+    </script>
+</body>
+</html>

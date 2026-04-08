@@ -2,7 +2,7 @@
 // =============================================================
 
 // API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'https://hostel-grievance-portal.onrender.com';
+const API_BASE = window.API_BASE || 'http://localhost:5001';
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -412,21 +412,87 @@ function closeModal(id) {
 function requireAuth(role) {
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || 'null');
+  
+  console.log('?? requireAuth called with role:', role);
+  console.log('?? User data:', user);
+  console.log('?? Token present:', !!token);
+  
   if (!token || !user) {
+    console.log('?? No token or user, redirecting to login');
     window.location.href = 'index.html';
     return null;
   }
+  
   if (role && user.role !== role) {
+    console.log('?? Role mismatch. User role:', user.role, 'Required role:', role);
+    console.log('?? Redirecting to correct dashboard...');
     window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
     return null;
   }
+  
+  console.log('?? Authentication successful for:', user.email);
   return user;
 }
 
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = 'https://hostel-grievance-portal.onrender.com/login.html';
+  
+  console.log('🚪 Logging out, clearing auth data...');
+  
+  // Try multiple redirect methods in order of preference
+  const redirects = [
+    'http://localhost:5500/index.html',  // Preferred: Frontend server
+    'http://127.0.0.1:5500/index.html', // Alternative: localhost IP
+    'index.html',  // Fallback: Direct file
+    '../index.html',  // Another fallback: Relative path
+    './index.html'   // Last resort: Current directory
+  ];
+  
+  let redirectAttempt = 0;
+  
+  function tryNextRedirect() {
+    if (redirectAttempt >= redirects.length) {
+      console.error('❌ All redirect attempts failed');
+      alert('Logout successful! Please manually navigate to login page.');
+      return;
+    }
+    
+    const targetUrl = redirects[redirectAttempt];
+    console.log(`🔄 Redirect attempt ${redirectAttempt + 1}: ${targetUrl}`);
+    
+    // Test if this URL works (only for HTTP URLs)
+    if (targetUrl.startsWith('http')) {
+      fetch(targetUrl.replace('/index.html', '/health'), { 
+        mode: 'no-cors',
+        signal: AbortSignal.timeout(1000)
+      })
+        .then(() => {
+          console.log('✅ Server is running, redirecting to:', targetUrl);
+          window.location.href = targetUrl;
+        })
+        .catch(() => {
+          console.log('❌ Server not responding, trying next method...');
+          redirectAttempt++;
+          setTimeout(tryNextRedirect, 100);
+        });
+    } else {
+      // For file:// URLs, redirect immediately
+      console.log('📁 Redirecting to file:', targetUrl);
+      window.location.href = targetUrl;
+    }
+  }
+  
+  // Start redirect attempts
+  tryNextRedirect();
+  
+  // Emergency fallback - force redirect after 3 seconds
+  setTimeout(() => {
+    if (window.location.href.includes('dashboard')) {
+      console.log('🚨 Emergency fallback redirect');
+      window.location.href = 'index.html';
+    }
+  }, 3000);
 }
 
 /* -------------------------------------------------------

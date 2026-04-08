@@ -9,6 +9,25 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
+// MySQL Database Connection
+const mysql = require("mysql2");
+
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("MySQL Error:", err);
+    return;
+  }
+  console.log("MySQL connected");
+});
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
@@ -38,7 +57,7 @@ app.use(helmet({
 // ============================================================
 const io = new Server(server, {
   cors: {
-    origin: ["https://hostelhgp.netlify.app", "http://localhost:5500", "http://127.0.0.1:5500"],
+    origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:3000", "http://127.0.0.1:3000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   },
@@ -61,7 +80,7 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: ["https://hostelhgp.netlify.app", "http://localhost:5500", "http://127.0.0.1:5500"],
+  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:3000", "http://127.0.0.1:3000"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -106,9 +125,17 @@ app.get('/', (req, res) => {
   res.send('Hostel Grievance Portal Backend Running 🚀');
 });
 // ============================================================
+console.log("?? Loading routes...");
 app.use('/api', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
+console.log("?? Routes loaded successfully");
+
+// Test endpoint to verify POST method works
+app.post('/api/test-post', (req, res) => {
+  console.log("?? Test POST endpoint called");
+  res.json({ success: true, message: "POST method works!" });
+});
 
 // Health check
 app.get('/api/health', (_req, res) => {

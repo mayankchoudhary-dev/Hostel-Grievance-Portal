@@ -115,6 +115,46 @@ app.get('/api/health', (_req, res) => {
   res.json({ success: true, message: 'Hostel Grievance Portal API is running 🚀' });
 });
 
+// Debug endpoint to test middleware chain
+app.get('/api/debug', async (req, res) => {
+  console.log('🔍 Debug endpoint called');
+  try {
+    const testResults = {
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'Testing...',
+      middleware: 'Testing...',
+      auth: 'Testing...'
+    };
+    
+    // Test database connection
+    try {
+      const db = require('./config/db');
+      const conn = await db.getConnection();
+      testResults.database = '✅ Connected';
+      conn.release();
+    } catch (dbErr) {
+      testResults.database = `❌ Failed: ${dbErr.message}`;
+    }
+    
+    // Test JWT secret
+    testResults.auth = process.env.JWT_SECRET ? '✅ Available' : '❌ Missing';
+    
+    res.json({
+      success: true,
+      message: 'Debug information',
+      data: testResults
+    });
+  } catch (err) {
+    console.error('💥 Debug endpoint error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Debug endpoint failed',
+      error: err.message
+    });
+  }
+});
+
 // Image serving endpoint with proper CORS
 app.get('/api/images/:filename', (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
@@ -209,12 +249,23 @@ app.use((_req, res) => {
 });
 
 // ============================================================
-// Global error handler
+// Middleware
 // ============================================================
+
+// Global error handler with detailed logging
 app.use((err, req, res, next) => {
+  console.error('🚨 GLOBAL ERROR HANDLER:');
+  console.error('💥 Error:', err.message);
+  console.error('💥 Stack:', err.stack);
+  console.error('💥 Request URL:', req.url);
+  console.error('💥 Request Method:', req.method);
+  console.error('💥 Request Headers:', req.headers);
+  console.error('💥 Request Body:', req.body);
+  
   res.status(500).json({
     success: false,
-    message: "Internal Server Error"
+    message: "Internal Server Error",
+    debug: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 

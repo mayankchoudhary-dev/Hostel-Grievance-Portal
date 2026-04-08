@@ -1,0 +1,8 @@
+{
+  "name": "hostel-grievance-portal-frontend",
+  "version": "1.0.0",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo Frontend ready"
+  }
+}

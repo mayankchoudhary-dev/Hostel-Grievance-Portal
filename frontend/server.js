@@ -33,7 +33,13 @@ app.get('/index.html', (req, res) => {
 });
 
 app.get('/register.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'register.html'));
+  console.log('📝 Serving register.html from:', path.join(__dirname, 'register.html'));
+  if (fs.existsSync(path.join(__dirname, 'register.html'))) {
+    res.sendFile(path.join(__dirname, 'register.html'));
+  } else {
+    console.error('❌ register.html not found at:', path.join(__dirname, 'register.html'));
+    res.status(404).send('register.html not found');
+  }
 });
 
 app.get('/admin-dashboard.html', (req, res) => {

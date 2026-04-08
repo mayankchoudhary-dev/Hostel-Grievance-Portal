@@ -1,0 +1,55 @@
+services:
+  # Backend Service
+  - type: web
+    name: hgp-backend
+    env: node
+    repo: https://github.com/yourusername/your-repo
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: DB_HOST
+        fromDatabase:
+          name: hgp-mysql
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: hgp-mysql
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: hgp-mysql
+          property: password
+      - key: DB_NAME
+        value: hostel_grievance_portal
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://hgp-frontend.onrender.com
+
+  # Frontend Service
+  - type: web
+    name: hgp-frontend
+    env: static
+    repo: https://github.com/yourusername/your-repo
+    rootDir: frontend
+    buildCommand: echo "No build needed"
+    staticPublishDir: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Database
+  - type: pserv
+    name: hgp-mysql
+    env: mysql
+    plan: free
+    ipAllowList: []
+    databases:
+      - name: hostel_grievance_portal
+        user: hgp_user

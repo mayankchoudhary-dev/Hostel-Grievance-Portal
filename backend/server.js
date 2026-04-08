@@ -37,6 +37,12 @@ const app = express();
 const server = http.createServer(app);
 
 // ============================================================
+// Static File Serving
+// ============================================================
+// Serve static frontend files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ============================================================
 // Security Middleware
 // ============================================================
 // Security headers

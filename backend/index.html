@@ -89,8 +89,6 @@
           cache: 'no-cache'
         });
         
-        const statusEl = document.getElementById('backendStatus');
-        
         if (healthResponse.ok) {
           const healthData = await healthResponse.json();
           console.log("?? Health check successful:", healthData);

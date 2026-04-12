@@ -256,7 +256,7 @@
       </form>
 
       <div class="divider"></div>
-      <p class="auth-link">Already have an account? <a href="http://localhost:5500/index.html">Sign in</a></p>
+      <p class="auth-link">Already have an account? <a href="index.html">Sign in</a></p>
     </div>
   </div>
 
@@ -264,14 +264,15 @@
   
   <!-- Load environment first, then auth -->
   <script>
-    // Set API_BASE directly for deployment
-    window.API_BASE = 'http://localhost:5001';
-    console.log('🌍 API_BASE set to:', window.API_BASE);
+    // Set API_BASE to Render backend
+    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
+    console.log('?? API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
   <script>
     // Simple initialization - don't block page load
     document.addEventListener('DOMContentLoaded', () => {
+      console.log("?? Registration page loaded successfully");
       console.log("🚀 Registration page loaded successfully");
       
       // Clean up old tokens to avoid conflicts

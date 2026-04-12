@@ -1,3 +1,3 @@
 window.ENV = {
-  API_BASE_URL: window.API_BASE || 'http://localhost:5000'
+  API_BASE_URL: 'https://hostel-grievance-portal-5.onrender.com'
 };

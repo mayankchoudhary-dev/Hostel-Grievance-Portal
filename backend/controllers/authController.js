@@ -22,28 +22,43 @@ const signToken = (user) => {
  * Registers a new student account
  */
 const register = async (req, res) => {
+  console.log("Register API called");
+  console.log("Request body:", req.body);
+  
   const { name, email, password, room_no } = req.body;
+
+  console.log("Extracted data:", { name, email, room_no, passwordLength: password?.length });
 
     try {
       // Check if email already exists
+      console.log("Checking if email exists:", email);
       const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+      console.log("Email check result:", existing.length, "rows found");
+      
       if (existing.length > 0) {
+        console.log("Email already registered:", email);
         return res.status(409).json({ success: false, message: 'Email already registered.' });
       }
 
       // Hash password
+      console.log("Hashing password...");
       const hashedPassword = await bcrypt.hash(password, 10);
+      console.log("Password hashed successfully");
 
       // Insert user (role is always 'student' on self-registration)
+      console.log("Inserting user into database...");
       const [result] = await pool.query(
         'INSERT INTO users (name, email, password, role, room_no) VALUES (?, ?, ?, ?, ?)',
         [name, email, hashedPassword, 'student', room_no]
       );
+      console.log("User inserted successfully, ID:", result.insertId);
 
       const newUser = { id: result.insertId, email, role: 'student', name };
       delete newUser.password; // Ensure password is never sent
       const token = signToken(newUser);
+      console.log("Token generated successfully");
 
+      console.log("Registration successful for:", email);
       return res.status(201).json({
         success: true,
         message: 'Registration successful.',
@@ -52,6 +67,7 @@ const register = async (req, res) => {
       });
     } catch (err) {
       console.error('register error:', err);
+      console.error('register error stack:', err.stack);
       return res.status(500).json({ success: false, message: 'Server error.' });
     }
 };

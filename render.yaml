@@ -1,7 +1,7 @@
 services:
-  # Backend Service
+  # Backend Service (serves both API and frontend)
   - type: web
-    name: hgp-backend
+    name: hostel-grievance-portal
     env: node
     repo: https://github.com/yourusername/your-repo
     rootDir: backend
@@ -11,7 +11,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5001
+        value: 5000
       - key: DB_HOST
         fromDatabase:
           name: hgp-mysql
@@ -28,21 +28,6 @@ services:
         value: hostel_grievance_portal
       - key: JWT_SECRET
         generateValue: true
-      - key: CLIENT_URL
-        value: https://hgp-frontend.onrender.com
-
-  # Frontend Service
-  - type: web
-    name: hgp-frontend
-    env: static
-    repo: https://github.com/yourusername/your-repo
-    rootDir: frontend
-    buildCommand: echo "No build needed"
-    staticPublishDir: .
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
   # Database
   - type: pserv

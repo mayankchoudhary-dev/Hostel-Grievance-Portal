@@ -40,15 +40,12 @@
       <div class="divider"></div>
 
       <p class="auth-link">
-        Don't have an account? <a href="http://localhost:5500/register.html">Register here</a>
+        Don't have an account? <a href="register.html">Register here</a>
       </p>
       <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
         Admin? Use your admin credentials above.
       </p>
-      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
-        Backend Status: <a href="http://localhost:5001/api/health" target="_blank">Check API Status</a>
-      </p>
-      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+            <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
         <span id="backendStatus">Checking backend...</span>
       </p>
     </div>
@@ -59,14 +56,16 @@
 
   <!-- Load environment first, then auth -->
   <script>
-    // Set API_BASE directly for deployment
-    window.API_BASE = 'http://localhost:5001';
-    console.log('🌍 API_BASE set to:', window.API_BASE);
+    // Set API_BASE to Render backend
+    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
+    console.log('?? API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
   <script>
     // Test backend connection before proceeding
     async function initializePage() {
+      console.log("?? Initializing login page...");
+      console.log("?? Checking API_BASE:", window.API_BASE);
       console.log("🚀 Initializing login page...");
       console.log("🔍 Checking API_BASE:", window.API_BASE);
       
@@ -89,6 +88,8 @@
           cache: 'no-cache'
         });
         
+        const statusEl = document.getElementById('backendStatus');
+        
         if (healthResponse.ok) {
           const healthData = await healthResponse.json();
           console.log("?? Health check successful:", healthData);
@@ -102,6 +103,7 @@
         
       } catch (error) {
         console.error("?? Backend connection failed:", error);
+        const statusEl = document.getElementById('backendStatus');
         statusEl.innerHTML = '?? Backend not running - Start with: "cd backend && node server.js"';
         statusEl.style.color = 'red';
         
@@ -115,7 +117,7 @@
         } else if (error.message.includes('CORS')) {
           messageEl.textContent = 'CORS error. Backend server configuration issue.';
         } else {
-          messageEl.textContent = 'Backend connection failed. Please ensure backend is running on http://localhost:5001. Start with: "cd backend && node server.js"';
+          messageEl.textContent = 'Backend connection failed. Please ensure backend is running on http://localhost:5000. Start with: "cd backend && node server.js"';
         }
         
         messageEl.className = 'error-message';

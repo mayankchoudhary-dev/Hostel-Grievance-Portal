@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register | Hostel Grievance Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    p {
+      text-align: center;
+      margin-bottom: 30px;
+      opacity: 0.8;
+    }
+    .logo {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .auth-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .auth-link a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .auth-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">🏠</div>
+  <h1>Hostel Grievance Portal</h1>
+  <p>Create your account to submit grievances</p>
+
+  <form id="form">
+    <div class="form-group">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" placeholder="Enter your full name" required />
+    </div>
+    
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Enter your email" required />
+    </div>
+    
+    <div class="form-group">
+      <label for="room_no">Room Number</label>
+      <input type="text" id="room_no" placeholder="e.g. A-101" required />
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Create a strong password" required />
+    </div>
+    
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+    </div>
+    
+    <button type="submit">Create Account</button>
+  </form>
+
+  <div id="message"></div>
+  
+  <p class="auth-link">
+    Already have an account? <a href="index.html">Login here</a>
+  </p>
+
+  <script>
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const room_no = document.getElementById('room_no').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const messageDiv = document.getElementById('message');
+
+      // Show loading state
+      const submitBtn = e.target.querySelector('button');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Creating Account...';
+      submitBtn.disabled = true;
+
+      // Password validation
+      if (password.length < 6) {
+        messageDiv.innerHTML = '<div class="error">❌ Password must be at least 6 characters</div>';
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Confirm password validation
+      if (password !== confirmPassword) {
+        messageDiv.innerHTML = '<div class="error">❌ Passwords do not match</div>';
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            room_no: room_no,
+            password: password
+          })
+        });
+
+        // Check if response is OK and has content
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        // Check if response has content before parsing JSON
+        const text = await res.text();
+        if (!text) {
+          throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          console.error('Response text:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        if (data.success) {
+          messageDiv.innerHTML = '<div class="success">✅ Account created successfully! Redirecting to login...</div>';
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+        } else {
+          messageDiv.innerHTML = '<div class="error">❌ Registration failed: ' + (data.message || 'Unknown error') + '</div>';
+        }
+        
+      } catch (error) {
+        messageDiv.innerHTML = '<div class="error">❌ Network error: ' + error.message + '</div>';
+      } finally {
+        // Reset button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

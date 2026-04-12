@@ -3,7 +3,7 @@ services:
   - type: web
     name: hostel-grievance-portal
     env: node
-    repo: https://github.com/yourusername/your-repo
+    repo: https://github.com/mayankchoudhary18/Hostel-Grievance-Portal
     rootDir: backend
     buildCommand: npm install
     startCommand: node server.js

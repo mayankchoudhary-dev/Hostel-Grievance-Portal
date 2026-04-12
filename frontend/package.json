@@ -1,0 +1,18 @@
+{
+  "name": "hostel-grievance-portal-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Hostel Grievance Portal",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.1"
+  },
+  "devDependencies": {},
+  "keywords": ["hostel", "grievance", "portal"],
+  "author": "",
+  "license": "ISC"
+}

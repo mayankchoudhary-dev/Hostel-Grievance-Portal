@@ -9,24 +9,8 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// MySQL Database Connection
-const mysql = require("mysql2");
-
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("MySQL Error:", err);
-    return;
-  }
-  console.log("MySQL connected");
-});
+// MySQL Database Connection Pool
+const pool = require('./config/db');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -86,7 +70,7 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:5501", "http://127.0.0.1:5501", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5000", "http://127.0.0.1:5000"],
+  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:5501", "http://127.0.0.1:5501", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5000", "http://127.0.0.1:5000", "https://hostel-grievance-portal-7.onrender.com", "https://hostel-grievance-portal-5.onrender.com"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -127,15 +111,19 @@ app.use((req, res, next) => {
 });
 
 // ============================================================
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route - serve login page
 app.get('/', (req, res) => {
-  res.send('Hostel Grievance Portal Backend Running 🚀');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-// ============================================================
-console.log("?? Loading routes...");
-app.use('/api', authRoutes);
-app.use('/api/complaints', complaintRoutes);
-app.use('/api/admin', adminRoutes);
-console.log("?? Routes loaded successfully");
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, message: 'Backend is running', timestamp: new Date().toISOString() });
+});
+
 
 // Explicit OPTIONS handling for CORS preflight
 app.options('/api/*', (req, res) => {

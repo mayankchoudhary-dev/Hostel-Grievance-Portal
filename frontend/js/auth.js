@@ -2,7 +2,7 @@
 // =============================================================
 
 // API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'http://localhost:5001';
+const API_BASE = window.API_BASE || 'https://backend-app.onrender.com';
 
 // Connection pool for better reliability
 const connectionPool = {

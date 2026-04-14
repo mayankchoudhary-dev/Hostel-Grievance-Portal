@@ -4,14 +4,13 @@
   "description": "Frontend for Hostel Grievance Portal",
   "main": "index.html",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "npx serve . -s",
+    "dev": "npx serve . -s -l 3000"
   },
-  "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^4.22.1"
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.1"
   },
-  "devDependencies": {},
   "keywords": ["hostel", "grievance", "portal"],
   "author": "",
   "license": "ISC"

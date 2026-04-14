@@ -47,7 +47,7 @@ app.use(helmet({
 // ============================================================
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: ["http://localhost:5000", "http://127.0.0.1:5000"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   },
@@ -70,7 +70,7 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:5501", "http://127.0.0.1:5501", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5000", "http://127.0.0.1:5000", "https://hostel-grievance-portal-7.onrender.com", "https://hostel-grievance-portal-5.onrender.com"],
+  origin: ["http://localhost:5000", "http://127.0.0.1:5000"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -111,8 +111,11 @@ app.use((req, res, next) => {
 });
 
 // ============================================================
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, 'public')));
+// API Routes (AFTER static files)
+// ============================================================
+app.use('/api', authRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root route - serve login page
 app.get('/', (req, res) => {
@@ -141,10 +144,6 @@ app.post('/api/test-post', (req, res) => {
   res.json({ success: true, message: "POST method works!" });
 });
 
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ success: true, message: 'Hostel Grievance Portal API is running 🚀' });
-});
 
 // Debug endpoint to test middleware chain
 app.get('/api/debug', async (req, res) => {
@@ -260,21 +259,9 @@ app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Max-Age', '86400');
-  res.send(200);
+  res.status(200).send();
 });
 
-// Specific OPTIONS handler for uploads
-app.options('/uploads/*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Max-Age', '86400');
-  res.send(200);
-});
-
-// ============================================================
-// 3) API Routes (AFTER static files)
-// ============================================================
 
 // ============================================================
 // 4) 404 Handler (MUST BE LAST)
@@ -310,9 +297,9 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Frontend: http://localhost:${PORT}`);
   console.log(`📂 Uploads served at http://localhost:${PORT}/uploads`);
   console.log(`🔗 Health check at http://localhost:${PORT}/api/health\n`);
 });

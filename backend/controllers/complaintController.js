@@ -30,7 +30,7 @@ const submitComplaint = async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      `INSERT INTO complaints (user_id, title, description, category, priority, image_url)
+      `INSERT INTO complaints (user_id, title, description, category, priority, image_path)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [userId, title.trim(), description.trim(), category, complaintPriority, imageUrl]
     );

@@ -70,13 +70,17 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: ["http://localhost:5000", "http://127.0.0.1:5000"],
+  origin: [
+    "http://127.0.0.1:5504",   // local frontend
+    "http://localhost:5504",
+    "https://hostel-grievance-portal-7.onrender.com/" // your deployed frontend
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   exposedHeaders: ['Content-Length', 'X-Requested-With']
 }));
-
+  
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

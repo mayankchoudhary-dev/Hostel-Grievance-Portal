@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  const backendUrl = window.API_BASE || 'http://localhost:5001';
+  const backendUrl = window.API_BASE || 'http://localhost:5000';
   script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */

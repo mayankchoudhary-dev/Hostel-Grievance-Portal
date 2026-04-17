@@ -71,7 +71,7 @@ app.use((req, _res, next) => {
 // CORS configuration - MUST come before all routes
 app.use(cors({
   origin: [
-    "http://127.0.0.1:5504",   // local frontend
+    "http://127.0.0.1:5000",   // local frontend
     "http://localhost:5504",
     "https://hostel-grievance-portal-7.onrender.com/" // your deployed frontend
   ],
@@ -81,7 +81,7 @@ app.use(cors({
   exposedHeaders: ['Content-Length', 'X-Requested-With']
 }));
   
-app.use(express.json());
+app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 // Debug middleware to check request body

@@ -47,6 +47,7 @@
       </p>
             <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
         <span id="backendStatus">Checking backend...</span>
+    <span id="status"></span>
       </p>
     </div>
   </div>
@@ -56,8 +57,8 @@
 
   <!-- Load environment first, then auth -->
   <script>
-    // Set API_BASE to Render backend
-    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
+    // Set API_BASE to localhost backend
+    window.API_BASE = 'http://localhost:5000';
     console.log('?? API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>

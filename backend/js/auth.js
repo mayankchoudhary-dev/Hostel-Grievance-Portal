@@ -2,7 +2,7 @@
 // =============================================================
 
 // API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'http://localhost:5001';
+const API_BASE = window.API_BASE || 'http://localhost:5000';
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -442,8 +442,8 @@ function logout() {
   
   // Try multiple redirect methods in order of preference
   const redirects = [
-    'http://localhost:5500/index.html',  // Preferred: Frontend server
-    'http://127.0.0.1:5500/index.html', // Alternative: localhost IP
+    'http://localhost:5000/index.html',  // Preferred: Frontend server
+    'http://127.0.0.1:5000/index.html', // Alternative: localhost IP
     'index.html',  // Fallback: Direct file
     '../index.html',  // Another fallback: Relative path
     './index.html'   // Last resort: Current directory

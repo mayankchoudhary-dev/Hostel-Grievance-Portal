@@ -57,8 +57,8 @@
 
   <!-- Load environment first, then auth -->
   <script>
-    // Set API_BASE to localhost backend
-    window.API_BASE = 'http://localhost:5000';
+    // Set API_BASE to Render backend
+    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
     console.log('?? API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
@@ -118,7 +118,7 @@
         } else if (error.message.includes('CORS')) {
           messageEl.textContent = 'CORS error. Backend server configuration issue.';
         } else {
-          messageEl.textContent = 'Backend connection failed. Please ensure backend is running on http://localhost:5000. Start with: "cd backend && node server.js"';
+          messageEl.textContent = 'Backend connection failed. Please check your internet connection and try again.';
         }
         
         messageEl.className = 'error-message';

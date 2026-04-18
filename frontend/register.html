@@ -143,9 +143,20 @@
       submitBtn.textContent = 'Creating Account...';
       submitBtn.disabled = true;
 
+      console.log('Form submitted with data:', { name, email, room_no, password, confirmPassword });
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        messageDiv.innerHTML = '<div class="error">Please enter a valid email address (e.g. test@gmail.com)</div>';
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+
       // Password validation
       if (password.length < 6) {
-        messageDiv.innerHTML = '<div class="error">❌ Password must be at least 6 characters</div>';
+        messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters</div>';
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
         return;
@@ -160,18 +171,23 @@
       }
 
       try {
-        const API_URL = "http://localhost:5000";
+        const API_URL = "https://hostel-grievance-portal-5.onrender.com";
+        const requestData = {
+          name: name,
+          email: email,
+          room_no: room_no,
+          password: password
+        };
+        
+        console.log('Sending data to backend:', requestData);
+        console.log('API URL:', API_URL);
+        
         const res = await fetch(`${API_URL}/api/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            room_no: room_no,
-            password: password
-          })
+          body: JSON.stringify(requestData)
         });
 
         // Check if response is OK and has content

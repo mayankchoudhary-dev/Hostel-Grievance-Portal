@@ -72,8 +72,10 @@ app.use((req, _res, next) => {
 app.use(cors({
   origin: [
     "http://127.0.0.1:5000",   // local frontend
+    "http://localhost:5000",   // local frontend
     "http://localhost:5504",
-    "https://hostel-grievance-portal-7.onrender.com/" // your deployed frontend
+    "https://hostel-grievance-portal-5.onrender.com", // deployed frontend
+    "https://hostel-grievance-portal-7.onrender.com"  // deployed frontend
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

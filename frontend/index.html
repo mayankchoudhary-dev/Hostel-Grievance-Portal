@@ -57,9 +57,13 @@
 
   <!-- Load environment first, then auth -->
   <script>
+    // Clear any old cached API URLs
+    localStorage.removeItem('api_base');
+    localStorage.removeItem('API_BASE');
+    
     // Set API_BASE to Render backend
     window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
-    console.log('?? API_BASE set to:', window.API_BASE);
+    console.log('🌍 API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
   <script>

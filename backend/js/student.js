@@ -49,10 +49,10 @@ function initSocket() {
   try {
     // Dynamic import from CDN if not preloaded
     const script = document.createElement('script');
-    script.src = window.API_BASE + '/socket.io/socket.io.js';
+    script.src = 'http://localhost:5000/socket.io/socket.io.js';
     script.onload = () => {
       /* global io */
-      socket = io(window.API_BASE);
+      socket = io('http://localhost:5000');
       socket.on('connect', () => {
         indicator.textContent = '🟢 Live';
         indicator.style.color = 'var(--success)';
@@ -159,7 +159,12 @@ function setupSubmitForm() {
     if (imageFile) formData.append('image', imageFile);
 
     try {
-      await apiPostForm('/api/complaints', formData);
+      await apiPost('/api/complaints', {
+  title,
+  category,
+  priority,
+  description
+});
       showToast('Complaint submitted successfully!', 'success');
       form.reset();
       document.getElementById('filePreviewText').textContent = '';

@@ -25,17 +25,22 @@ router.post('/register',
 // POST /api/login
 router.post('/login',
   body('email').isEmail(),
-  body('password').notEmpty(),
+  body('password').isLength({ min: 6 }),
   async (req, res) => {
     console.log("Login API called"); // Debug log
+    console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      console.log("Validation errors:", errors.array()); // 👈 ADD THIS
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
     }
 
     // continue logic
     return await login(req, res);
   }
-);
+);  
 
 module.exports = router;

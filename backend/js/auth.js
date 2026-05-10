@@ -318,34 +318,22 @@ async function apiDelete(endpoint) {
   }
 }
 
-async function apiPostForm(endpoint, formData) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error("No token found in localStorage");
-    showToast('Please login first.', 'error');
-    return null;
+async function apiPostForm(url, formData) {
+  const res = await fetch("http://localhost:5000" + url, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token") // 🔥 FIX
+    },
+    body: formData
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API POST Form Error:", res.status, text);
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
   }
 
-  try {
-    const res = await fetch(API_BASE + endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
-    
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-    
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message || 'Request failed');
-    return data;
-  } catch (error) {
-    console.error("API POST Form Error:", error);
-    throw error;
-  }
+  return res.json();
 }
 
 /* -------------------------------------------------------

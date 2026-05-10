@@ -22,22 +22,81 @@ const signToken = (user) => {
  * Registers a new student account
  */
 const register = async (req, res) => {
-  console.log("Register API called");
-  console.log("Request body:", req.body);
+  console.log("📩 Register API called");
+  console.log("📥 Request body:", req.body);
   
   const { name, email, password, room_no } = req.body;
 
-  console.log("Extracted data:", { name, email, room_no, passwordLength: password?.length });
+  // ✅ STEP 3: Add debug (VERY IMPORTANT)
+  console.log("📩 Incoming email:", email);
+  console.log("📧 Email type:", typeof email);
+  console.log("📧 Email length:", email?.length);
+  console.log("📧 Email trimmed:", email?.trim());
+  console.log("📧 Email lowercase:", email?.toLowerCase());
+  
+  console.log("🔍 Extracted data:", { 
+    name: name?.trim(), 
+    email: email?.trim(), 
+    room_no: room_no?.trim(), 
+    passwordLength: password?.length 
+  });
 
     try {
       // Check if email already exists
-      console.log("Checking if email exists:", email);
-      const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-      console.log("Email check result:", existing.length, "rows found");
+      console.log("🔍 Checking if email exists:", email);
       
-      if (existing.length > 0) {
-        console.log("Email already registered:", email);
-        return res.status(409).json({ success: false, message: 'Email already registered.' });
+      // ✅ COMPREHENSIVE DEBUG: Check what's actually happening
+      console.log("🔍 DEBUG: Starting duplicate email check");
+      console.log("🔍 DEBUG: Email to check:", `"${email}"`);
+      console.log("🔍 DEBUG: Email type:", typeof email);
+      console.log("🔍 DEBUG: Email length:", email?.length);
+      
+      let existingUser;
+      try {
+        console.log("🔍 DEBUG: Executing SQL query...");
+        const [rows] = await pool.query(
+          'SELECT id, email FROM users WHERE email = ?', 
+          [email]
+        );
+        existingUser = rows;
+        
+        // ✅ Step 1: Add debug log in controller
+        console.log("📧 Email received:", email);
+        
+        // ✅ Step 2: Check what DB returns
+        console.log("👤 Existing user:", existingUser);
+        
+        console.log("🔍 DEBUG: Query executed successfully");
+        console.log("🔍 DEBUG: Raw query result:", rows);
+        console.log("🔍 DEBUG: Number of rows found:", rows.length);
+        
+        if (rows.length > 0) {
+          console.log("🔍 DEBUG: Found existing users:");
+          rows.forEach((row, index) => {
+            console.log(`  Row ${index + 1}:`, { id: row.id, email: row.email });
+          });
+        }
+        
+      } catch (dbError) {
+        console.error("💥 DEBUG: Database query failed:", dbError);
+        console.error("💥 DEBUG: Error details:", dbError.message);
+        console.error("💥 DEBUG: Error stack:", dbError.stack);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Database error during email check." 
+        });
+      }
+
+      if (existingUser.length > 0) {
+        console.log("❌ Email already registered - returning 409");
+        console.log("❌ Email:", `"${email}"`);
+        console.log("❌ Found users:", existingUser.length);
+        return res.status(409).json({
+          success: false,
+          message: "Email already registered."
+        });
+      } else {
+        console.log("✅ Email is unique - proceeding with registration");
       }
 
       // Hash password

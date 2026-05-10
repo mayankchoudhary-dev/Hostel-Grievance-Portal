@@ -20,20 +20,15 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 const server = http.createServer(app);
 
-// ============================================================
-// 1) Static File Serving (MUST BE FIRST)
-// ============================================================
-// Serve static frontend files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ============================================================
-// 2) Security Middleware
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 // ============================================================
 // Security headers
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-  }));
-
+  contentSecurityPolicy: false
+}));
 // Rate limiting (prevents spam attacks) - DISABLED FOR TESTING
 // const limiter = rateLimit({
 //   windowMs: 15 * 60 * 1000, // 15 min
@@ -70,21 +65,16 @@ app.use((req, _res, next) => {
 
 // CORS configuration - MUST come before all routes
 app.use(cors({
-  origin: [
-    "http://127.0.0.1:5000",   // local frontend
-    "http://localhost:5000",   // local frontend
-    "http://localhost:5504",
-    "https://hostel-grievance-portal-5.onrender.com", // deployed frontend
-    "https://hostel-grievance-portal-7.onrender.com"  // deployed frontend
-  ],
+  origin: "*", // Temporary wildcard to fix "Failed to fetch" error
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   exposedHeaders: ['Content-Length', 'X-Requested-With']
 }));
   
-app.use(express.static("public"));
+app.use(express.json()); // 👈 VERY IMPORTANT - Parse JSON body
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 // Debug middleware to check request body
 app.use((req, res, next) => {
@@ -130,7 +120,35 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check requested from:', req.headers.origin || 'Unknown');
   res.json({ success: true, message: 'Backend is running', timestamp: new Date().toISOString() });
+});
+
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  console.log('🧪 Test endpoint requested from:', req.headers.origin || 'Unknown');
+  res.json({ success: true, message: 'Test endpoint working', port: 5000 });
+});
+
+// Simple ping endpoint - even simpler
+app.get('/api/ping', (req, res) => {
+  console.log('🏓 Ping endpoint requested');
+  res.json({ success: true, message: 'pong', server: 'running', port: 5000 });
+});
+
+// Root API endpoint
+app.get('/api', (req, res) => {
+  console.log('🔗 API root endpoint requested');
+  res.json({ 
+    success: true, 
+    message: 'API is working',
+    endpoints: {
+      health: '/api/health',
+      test: '/api/test', 
+      ping: '/api/ping'
+    },
+    port: 5000 
+  });
 });
 
 
@@ -268,6 +286,11 @@ app.options('*', (req, res) => {
   res.status(200).send();
 });
 
+// Serve register.html directly
+app.get('/register.html', (req, res) => {
+  console.log("🔥 REGISTER FILE SERVED FROM:", __dirname);
+  res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
 
 // ============================================================
 // 4) 404 Handler (MUST BE LAST)

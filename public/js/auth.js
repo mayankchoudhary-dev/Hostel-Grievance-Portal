@@ -1,8 +1,150 @@
 // js/auth.js - Shared utilities: API helpers, toast, theme, auth guards
 // =============================================================
 
-// API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'http://localhost:5000';
+
+
+// REAL TOKEN DEBUGGING - Identify the root cause
+function debugTokenIssue() {
+  console.log("🔍 REAL TOKEN DEBUGGING - Root Cause Analysis:");
+  console.log("===============================================");
+  
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  console.log("1. Token Storage:");
+  console.log("   Token exists:", !!token);
+  console.log("   Token length:", token ? token.length : 0);
+  console.log("   Token format:", token ? (token.startsWith('eyJ') ? 'JWT ✅' : 'Invalid ❌') : 'N/A');
+  console.log("   Token preview:", token ? token.substring(0, 50) + '...' : 'null');
+  
+  console.log("2. User Storage:");
+  console.log("   User exists:", !!user);
+  console.log("   User data:", user ? JSON.parse(user) : null);
+  
+  console.log("3. Request Headers Analysis:");
+  const authHeader = token ? `Bearer ${token}` : 'null';
+  console.log("   Authorization header:", authHeader);
+  console.log("   Header length:", authHeader.length);
+  
+  console.log("4. Potential Issues:");
+  if (!token) console.log("   ❌ No token stored");
+  if (!token || !token.startsWith('eyJ')) console.log("   ❌ Invalid token format");
+  if (!user) console.log("   ❌ No user data stored");
+  if (user) {
+    try {
+      const userData = JSON.parse(user);
+      if (!userData.role) console.log("   ❌ User role missing");
+    } catch (e) {
+      console.log("   ❌ User data corrupted");
+    }
+  }
+  
+  console.log("===============================================");
+}
+
+// Auto-debug on load
+debugTokenIssue();
+
+// Token expiration check
+function checkTokenExpiration() {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+  
+  try {
+    // Decode JWT without verification (just to check expiration)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    
+    console.log('🔍 Token Expiration Check:');
+    console.log('  Issued at (iat):', payload.iat);
+    console.log('  Expires at (exp):', payload.exp);
+    console.log('  Current time:', now);
+    console.log('  Time until expiry:', payload.exp - now, 'seconds');
+    
+    if (payload.exp < now) {
+      console.error('❌ Token has expired!');
+      return false;
+    }
+    
+    console.log('✅ Token is still valid');
+    return true;
+  } catch (e) {
+    console.error('❌ Failed to decode token:', e);
+    return false;
+  }
+}
+
+// IMMEDIATE FIX: Only clear storage if explicitly requested (not automatic)
+console.log('� AUTH.JS: Storage clearing disabled - use "🚨 FIX ALL" button instead');
+
+// Force API_BASE to port 5000
+localStorage.removeItem('api_base');
+localStorage.removeItem('API_BASE');
+localStorage.removeItem('hgp_api_base');
+sessionStorage.removeItem('api_base');
+sessionStorage.removeItem('API_BASE');
+sessionStorage.removeItem('hgp_api_base');
+
+// Force overwrite any existing value
+window.API_BASE = 'http://localhost:5000';
+const API_BASE = 'http://localhost:5000';
+
+// Prevent any future changes to API_BASE
+Object.defineProperty(window, 'API_BASE', {
+  value: 'http://localhost:5000',
+  writable: false,
+  configurable: false
+});
+
+console.log('🔧 AUTH.JS: API_BASE locked to:', window.API_BASE);
+
+// ── Token Validation & Debugging ─────────────────────────────────────
+function validateToken() {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');  
+  console.log('🔍 Token Validation:');
+  console.log('  Token exists:', !!token);
+  console.log('  Token length:', token ? token.length : 0);
+  console.log('  Token format:', token ? (token.startsWith('eyJ') ? 'JWT' : 'Invalid') : 'N/A');
+  console.log('  User exists:', !!user);
+  console.log('  User data:', user ? JSON.parse(user) : null);
+  
+  if (!token) {
+    console.error('❌ No token found in localStorage');
+    return false;
+  }
+  
+  if (!token.startsWith('eyJ')) {
+    console.error('❌ Token format is invalid (not JWT)');
+    return false;
+  }
+  
+  if (!user) {
+    console.error('❌ No user data found');
+    return false;
+  }
+  
+  try {
+    const userData = JSON.parse(user);
+    if (!userData.role) {
+      console.error('❌ User role not found');
+      return false;
+    }
+    console.log('✅ Token validation passed');
+    return true;
+  } catch (e) {
+    console.error('❌ User data is invalid JSON:', e);
+    return false;
+  }
+}
+
+function debugAuthHeaders() {
+  const token = localStorage.getItem('token');
+  console.log('🔍 Authorization Header Debug:');
+  console.log('  Token:', token ? `${token.substring(0, 20)}...` : 'null');
+  console.log('  Header would be:', token ? `Bearer ${token}` : 'null');
+  console.log('  Header length:', token ? `Bearer ${token}`.length : 0);
+}
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -18,13 +160,17 @@ const connectionPool = {
 // Test connection to backend
 async function testConnection() {
   try {
-    console.log("Testing connection to:", API_BASE + '/api/health');
-    console.log("Current API_BASE:", API_BASE);
+    // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
+    const FORCED_API_BASE = 'http://localhost:5000';
+    
+    console.log("Testing connection to:", FORCED_API_BASE + '/api/health');
+    console.log("Original API_BASE:", API_BASE);
+    console.log("FORCED_API_BASE:", FORCED_API_BASE);
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
     
-    const res = await fetch(API_BASE + '/api/health', {
+    const res = await fetch(FORCED_API_BASE + '/api/health', {
       method: 'GET',
       signal: controller.signal,
       cache: 'no-cache',
@@ -59,8 +205,12 @@ async function testConnection() {
 }
 
 async function apiPost(endpoint, body) {
+  // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
+  const FORCED_API_BASE = 'http://localhost:5000';
+  
   console.log("API POST:", endpoint); // Debug log
-  console.log("API_BASE:", API_BASE); // Debug log
+  console.log("ORIGINAL API_BASE:", API_BASE); // Debug log
+  console.log("FORCED_API_BASE:", FORCED_API_BASE); // Debug log
   console.log("Body:", body); // Debug log
   
   // Registration and login endpoints don't require authentication
@@ -89,11 +239,19 @@ async function apiPost(endpoint, body) {
   for (let attempt = 1; attempt <= connectionPool.maxRetries; attempt++) {
     try {
       console.log(`🔄 POST Attempt ${attempt} for ${endpoint}`);
+      console.log("🔍 FINAL DATA:", {
+        endpoint: endpoint,
+        method: 'POST',
+        headers: headers,
+        body: body,
+        url: FORCED_API_BASE + endpoint
+      });
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
       
-      const res = await fetch(API_BASE + endpoint, {
+      console.log("🚀 Sending POST request...");
+      const res = await fetch(FORCED_API_BASE + endpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -101,6 +259,8 @@ async function apiPost(endpoint, body) {
         cache: 'no-cache',
         signal: controller.signal
       });
+      
+      console.log("✅ POST Response received");
 
       clearTimeout(timeoutId);
 
@@ -109,6 +269,19 @@ async function apiPost(endpoint, body) {
         const errorText = await res.text();
         console.error(`❌ POST Attempt ${attempt} failed:`, res.status, res.statusText);
         console.error('Response body:', errorText);
+        
+        // Handle 401 Unauthorized - token is invalid/expired
+        if (res.status === 401) {
+          console.error('🚨 Token is invalid or expired, logging out...');
+          localStorage.clear();
+          sessionStorage.clear();
+          showToast('Session expired. Please login again.', 'error');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+          return null;
+        }
+        
         lastError = new Error(`HTTP ${res.status}: ${res.statusText}`);
         
         if (attempt < connectionPool.maxRetries) {
@@ -156,17 +329,35 @@ async function apiPost(endpoint, body) {
 }
 
 async function apiGet(endpoint) {
-  console.log("API GET:", endpoint); // Debug log
-  console.log("API_BASE:", API_BASE); // Debug log
-  console.log("Token:", localStorage.getItem('token')); // Debug log
-  console.log("User role:", localStorage.getItem('userRole')); // Debug log
+  // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
+  const FORCED_API_BASE = 'http://localhost:5000';
   
+  console.log("🚀 API GET:", endpoint);
+  
+  // Check for authentication token
   const token = localStorage.getItem('token');
-  if (!token) {
-    console.error("No token found in localStorage");
-    showToast('Please login first.', 'error');
+  const user = localStorage.getItem('user');
+  
+  if (!token || !user) {
+    console.error('⚠️ No token or user found');
     return null;
   }
+  
+  // Check user data
+  try {
+    const userData = JSON.parse(user);
+    console.log("✅ User data valid:", userData.name, userData.role);
+  } catch (e) {
+    console.error('⚠️ Corrupted user data, proceeding anyway');
+  }
+  
+  console.log("🔍 Request Details:");
+  console.log("  Endpoint:", endpoint);
+  console.log("  User:", user?.name, "Role:", user?.role);
+  console.log("  Token length:", token.length);
+  
+  // Debug authorization headers
+  debugAuthHeaders();
 
   // Check if same request is already in progress
   const requestKey = `${endpoint}_${Date.now()}`;
@@ -188,23 +379,40 @@ async function apiGet(endpoint) {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   };
+  
+  // ✅ Step 1: Console check - Add token logging
+  console.log("TOKEN SENT:", localStorage.getItem('token'));
+  
+  // Debug: Verify Authorization header
+  console.log("🔍 Request headers being sent:", headers);
+  console.log("🔍 Token length:", token ? token.length : 'null');
+  console.log("🔍 Token starts with Bearer:", token ? token.startsWith('eyJ') : 'null');
 
   let lastError = null;
 
   for (let attempt = 1; attempt <= connectionPool.maxRetries; attempt++) {
     try {
       console.log(`🔄 Attempt ${attempt} for ${endpoint}`);
+      console.log("🔍 FINAL DATA:", {
+        endpoint: endpoint,
+        method: 'GET',
+        headers: headers,
+        url: FORCED_API_BASE + endpoint
+      });
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), connectionPool.timeout);
       
-      const res = await fetch(API_BASE + endpoint, {
+      console.log("🚀 Sending request...");
+      const res = await fetch(FORCED_API_BASE + endpoint, {
         method: 'GET',
         headers,
         mode: 'cors',
         cache: 'no-cache',
         signal: controller.signal
       });
+      
+      console.log("✅ Response received");
 
       clearTimeout(timeoutId);
       connectionPool.activeRequests.delete(requestKey);
@@ -214,6 +422,34 @@ async function apiGet(endpoint) {
         const errorText = await res.text();
         console.error(`❌ Attempt ${attempt} failed:`, res.status, res.statusText);
         console.error('Response body:', errorText);
+        
+        // SMART 401 HANDLING - Check if token expired vs invalid
+        if (res.status === 401) {
+          console.error('🚨 Token expired or invalid!');
+          const errorText = await res.text();
+          console.error('Error details:', errorText);
+          
+          // Check if it's specifically expired
+          if (errorText.includes('expired')) {
+            console.error('🕐 Token expired - need relogin');
+            showToast('Session expired! Please login again.', 'error');
+          } else {
+            console.error('❌ Token invalid - need relogin');
+            showToast('Invalid session! Please login again.', 'error');
+          }
+          
+          // Clear storage and redirect
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Redirect to login
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 2000);
+          
+          return null;
+        }
+        
         lastError = new Error(`HTTP ${res.status}: ${res.statusText}`);
         
         if (attempt < connectionPool.maxRetries) {
@@ -258,6 +494,9 @@ async function apiGet(endpoint) {
 }
 
 async function apiPut(endpoint, body) {
+  // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
+  const FORCED_API_BASE = 'http://localhost:5000';
+  
   const token = localStorage.getItem('token');
   if (!token) {
     console.error("No token found in localStorage");
@@ -266,7 +505,7 @@ async function apiPut(endpoint, body) {
   }
 
   try {
-    const res = await fetch(API_BASE + endpoint, {
+    const res = await fetch(FORCED_API_BASE + endpoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -289,6 +528,9 @@ async function apiPut(endpoint, body) {
 }
 
 async function apiDelete(endpoint) {
+  // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
+  const FORCED_API_BASE = 'http://localhost:5000';
+  
   const token = localStorage.getItem('token');
   if (!token) {
     console.error("No token found in localStorage");
@@ -297,7 +539,7 @@ async function apiDelete(endpoint) {
   }
 
   try {
-    const res = await fetch(API_BASE + endpoint, {
+    const res = await fetch(FORCED_API_BASE + endpoint, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -318,22 +560,34 @@ async function apiDelete(endpoint) {
   }
 }
 
-async function apiPostForm(url, formData) {
-  const res = await fetch("http://localhost:5000" + url, {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token") // 🔥 FIX
-    },
-    body: formData
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("API POST Form Error:", res.status, text);
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+async function apiPostForm(endpoint, formData) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error("No token found in localStorage");
+    showToast('Please login first.', 'error');
+    return null;
   }
 
-  return res.json();
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Request failed');
+    return data;
+  } catch (error) {
+    console.error("API POST Form Error:", error);
+    throw error;
+  }
 }
 
 /* -------------------------------------------------------
@@ -430,8 +684,8 @@ function logout() {
   
   // Try multiple redirect methods in order of preference
   const redirects = [
-    'http://localhost:5500/index.html',  // Preferred: Frontend server
-    'http://127.0.0.1:5500/index.html', // Alternative: localhost IP
+    'http://127.0.0.1:5500/index.html',  // Preferred: Local frontend
+    'http://localhost:5500/index.html', // Alternative: Local frontend
     'index.html',  // Fallback: Direct file
     '../index.html',  // Another fallback: Relative path
     './index.html'   // Last resort: Current directory

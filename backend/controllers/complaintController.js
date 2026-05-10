@@ -8,8 +8,22 @@ const PAGE_SIZE = 10;
  * Student submits a new complaint (with optional image upload via multer)
  */
 const submitComplaint = async (req, res) => {
+  console.log("🔍 COMPLAINT CONTROLLER DEBUG:");
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
+  console.log("USER:", req.user);
+  console.log("HEADERS:", req.headers);
+  
   const { title, description, category, priority } = req.body;
-  const userId = req.user.id;
+  console.log("FINAL CHECK req.user:", req.user);
+  if (!req.user || !req.user.id) {
+  return res.status(401).json({
+    success: false,
+    message: 'User not authenticated'
+  });
+}
+
+const userId = req.user.id;
 
   if (!title || !description || !category) {
     return res.status(400).json({ success: false, message: 'Title, description and category are required.' });

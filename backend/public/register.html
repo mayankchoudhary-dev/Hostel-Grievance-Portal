@@ -209,7 +209,7 @@
         <div id="debugInfo"></div>
       </div>
 
-      <form id="registerForm" method="POST" novalidate>
+      <form id="registerForm" method="POST">
         <div class="form-group">
           <label class="form-label" for="name">Full Name</label>
           <input class="form-input" type="text" id="name" name="name"
@@ -264,8 +264,8 @@
   
   <!-- Load environment first, then auth -->
   <script>
-    // Set API_BASE to Render backend
-    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
+    // Set API_BASE to localhost backend
+    window.API_BASE = 'http://localhost:5000';
     console.log('?? API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
@@ -338,12 +338,74 @@
       e.preventDefault();
       const btn = document.getElementById('registerBtn');
       const messageEl = document.getElementById('registerMessage');
+      
+      // ✅ STEP 1: PROVE THE ISSUE - Add form elements debugging
+      console.log("FORM ELEMENTS:", e.target.elements);
+      console.log("NAME FIELD:", e.target.elements.name?.value);
+      console.log("EMAIL FIELD:", e.target.elements.email?.value);
+      console.log("ROOM FIELD:", e.target.elements.room_no?.value);
+      
+      // ✅ STEP 2: SIMPLE FIX - Direct DOM access (BEST FIX)
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
       const room_no = document.getElementById('room_no').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-
+      
+      // Validate before sending
+      if (!name || name.trim() === '') {
+        alert("❌ Name is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (!email || email.trim() === '') {
+        alert("❌ Email is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      // Check email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert("❌ Please enter a valid email address");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (!room_no || room_no.trim() === '') {
+        alert("❌ Room number is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      // Password rules
+      if (!password || password.length < 6) {
+        alert("❌ Password must be at least 6 characters");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        alert("❌ Passwords do not match");
+        btn.disabled = false;
+        return;
+      }
+      
+      // FINAL VALUES DEBUG - This will show the real issue
+      console.log("🚨 FINAL VALUES BEFORE SEND:", {
+        name: `"${name}"`,
+        email: `"${email}"`, 
+        room_no: `"${room_no}"`,
+        password: `"${password ? '***' : ''}"`
+      });
+      console.log("🔍 Value lengths:", {
+        name: name.length,
+        email: email.length,
+        room_no: room_no.length,
+        password: password.length
+      });
+      
       // Show loading state
       document.getElementById('registerBtnText').style.display = 'none';
       document.getElementById('registerSpinner').style.display = 'inline-block';
@@ -353,11 +415,23 @@
         console.log("🚀 Starting registration request...");
         console.log("📤 Sending:", { name, email, room_no, password: password ? "***" : undefined });
         
+        // Debug: Check individual values
+        console.log("🔍 Individual values check:");
+        console.log("  name:", `"${name}"`, `(length: ${name.length})`);
+        console.log("  email:", `"${email}"`, `(length: ${email.length})`);
+        console.log("  room_no:", `"${room_no}"`, `(length: ${room_no.length})`);
+        console.log("  password:", `"${password ? "***" : ""}"`, `(length: ${password.length})`);
+        
+        // Force API_BASE to port 5000
+        const API_URL = 'http://localhost:5000';
+        console.log("🔍 Using API_URL:", API_URL);
+        console.log("🔍 window.API_BASE:", window.API_BASE);
+        
         // Direct fetch with proper error handling
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
         
-        const response = await fetch(window.API_BASE + '/api/register', {
+        const response = await fetch(API_URL + '/api/register', {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

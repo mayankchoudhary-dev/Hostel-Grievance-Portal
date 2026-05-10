@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  const backendUrl = window.API_BASE || 'http://localhost:5001';
+  const backendUrl = window.API_BASE || 'http://localhost:5000';
   script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */
@@ -231,15 +231,13 @@ async function submitRemark() {
 // ── View Complaint (Admin) ────────────────────────────────────
 function viewComplaintAdmin(c) {
   console.log("🔍 viewComplaintAdmin: Full complaint data:", c); // Debug log
-  console.log("🔍 viewComplaintAdmin: Image URL:", c.image_url); // Debug log
+  console.log("🔍 viewComplaintAdmin: Image URL:", c.image_path); // Debug log
   
   // Fix image URL - extract filename and use API endpoint
   let imageUrl = '';
-  if (c.image_url) {
-    // Extract just the filename from any path format and decode spaces
-    const filename = c.image_url.replace(/^\/uploads\//, '').replace(/^uploads\//, '').replace(/%20/g, ' ');
-    imageUrl = `${window.API_BASE}/api/images/${encodeURIComponent(filename)}`;
-  }
+if (c.image_path) {
+  imageUrl = `${window.API_BASE}${c.image_path}`;
+}
   
   console.log("🔍 viewComplaintAdmin: Final image URL:", imageUrl); // Debug log
   

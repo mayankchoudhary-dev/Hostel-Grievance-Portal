@@ -39,7 +39,7 @@
 
       <div class="divider"></div>
 
-      <p class="auth-link">
+      <!-- <p class="auth-link">
         Don't have an account? <a href="register.html">Register here</a>
       </p>
       <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
@@ -48,7 +48,14 @@
             <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
         <span id="backendStatus">Checking backend...</span>
     <span id="status"></span>
-      </p>
+      </p> -->
+      
+      <!-- Test Example -->
+      <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 12px;">
+        <strong>Test Example:</strong><br>
+        Email: test@gmail.com<br>
+        Password: 123456
+      </div>
     </div>
   </div>
 
@@ -61,8 +68,8 @@
     localStorage.removeItem('api_base');
     localStorage.removeItem('API_BASE');
     
-    // Set API_BASE to Render backend
-    window.API_BASE = 'https://hostel-grievance-portal-5.onrender.com';
+    // Set API_BASE to localhost backend
+    window.API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
     console.log('🌍 API_BASE set to:', window.API_BASE);
   </script>
   <script src="js/auth.js"></script>
@@ -93,7 +100,7 @@
           cache: 'no-cache'
         });
         
-        const statusEl = document.getElementById('backendStatus');
+        // const statusEl = document.getElementById('backendStatus');
         
         if (healthResponse.ok) {
           const healthData = await healthResponse.json();
@@ -177,14 +184,13 @@
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
+      console.log(email, password); // 👈 IMPORTANT
+
       try {
         console.log("🚀 Starting login request...");
         console.log("📤 Sending:", { email, password: password ? "***" : undefined });
         
-        // Direct fetch with proper error handling
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-        
+        // Simple working fetch
         const response = await fetch(window.API_BASE + '/api/login', {
           method: "POST",
           headers: {
@@ -193,13 +199,8 @@
           body: JSON.stringify({
             email,
             password,
-          }),
-          mode: 'cors',
-          cache: 'no-cache',
-          signal: controller.signal
+          })
         });
-
-        clearTimeout(timeoutId);
         
         console.log("📥 Response status:", response.status);
         console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()));
@@ -233,6 +234,20 @@
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           
+          // FIX 4: Check token storage after login
+          console.log("🔍 FIX 4: Token Storage Verification:");
+          const storedToken = localStorage.getItem("token");
+          console.log("localStorage.getItem('token'):", storedToken);
+          
+          if (!storedToken || storedToken === 'null' || storedToken === 'undefined' || storedToken === '') {
+            console.error("❌ CRITICAL: Token not stored properly!");
+            messageEl.textContent = 'Login failed: Token storage error';
+            messageEl.className = 'error-message';
+            messageEl.style.display = 'block';
+            return;
+          }
+          
+          console.log("✅ Token stored successfully:", storedToken.substring(0, 50) + '...');
           console.log("✅ User data stored:", {
             token: data.token ? 'Present' : 'Missing',
             user: data.user ? 'Present' : 'Missing',

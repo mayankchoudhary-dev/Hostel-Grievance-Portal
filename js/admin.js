@@ -13,30 +13,112 @@ let socket = null;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("🚀 Admin dashboard loading...");
+  
   const user = requireAuth('admin');
-  if (!user) return;
+  if (!user) {
+    console.error("❌ Admin authentication failed");
+    return;
+  }
 
+  console.log("✅ Admin authenticated:", user.name);
+  
   // Fill sidebar
-  document.getElementById('sidebarName').textContent = user.name;
-  document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
+  const sidebarName = document.getElementById('sidebarName');
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  if (sidebarName) sidebarName.textContent = user.name;
+  if (sidebarAvatar) sidebarAvatar.textContent = user.name.charAt(0).toUpperCase();
 
-  // Load dashboard data
-  loadAdminStats();
-  loadRecentComplaints();
+  // Load dashboard data with error handling
+  console.log("🔍 Loading admin dashboard data...");
+  
+  // Always try to load stats, but show fallback if it fails
+  try {
+    loadAdminStats();
+  } catch (err) {
+    console.error("❌ loadAdminStats failed:", err);
+    // Show fallback stats
+    showFallbackStats();
+  }
+  
+  // Always try to load recent complaints, but show fallback if it fails
+  try {
+    loadRecentComplaints();
+  } catch (err) {
+    console.error("❌ loadRecentComplaints failed:", err);
+    // Show fallback recent complaints
+    showFallbackRecentComplaints();
+  }
 
-  // Socket.io for real-time updates
-  initSocket();
+  // Socket.io for real-time updates (with error handling)
+  try {
+    initSocket();
+  } catch (err) {
+    console.error("❌ Socket initialization failed:", err);
+  }
+  
+  console.log("✅ Admin dashboard initialization completed");
 });
+
+// ── Fallback Data Functions ───────────────────────────────────
+function showFallbackStats() {
+  console.log("🔧 Showing fallback stats data...");
+  
+  const totalEl = document.getElementById('statTotal');
+  const pendingEl = document.getElementById('statPending');
+  const inProgressEl = document.getElementById('statInProgress');
+  const resolvedEl = document.getElementById('statResolved');
+  
+  if (totalEl) totalEl.textContent = '0';
+  if (pendingEl) pendingEl.textContent = '0';
+  if (inProgressEl) inProgressEl.textContent = '0';
+  if (resolvedEl) resolvedEl.textContent = '0';
+  
+  // Show fallback charts
+  drawStatusChart('statusChartMini', { Pending: 0, 'In Progress': 0, Resolved: 0 });
+  drawCategoryChart('categoryChartMini', { Maintenance: 0, Food: 0, Cleaning: 0, Other: 0 });
+  
+  showToast('Using offline data - API may be unavailable', 'info');
+}
+
+function showFallbackRecentComplaints() {
+  console.log("🔧 Showing fallback recent complaints...");
+  
+  const tbody = document.getElementById('recentComplaintsBody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="7">
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>Loading preview data...</p>
+          <small style="color: var(--text-muted);">Click "🚨 TEST NOW" to check API connection</small>
+        </div>
+      </td>
+    </tr>
+  `;
+}
 
 // ── Socket.io ─────────────────────────────────────────────────
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  const backendUrl = window.API_BASE || 'https://hostel-grievance-portal-5.onrender.com';
+  // Force Socket.IO to use port 5000 regardless of cached values
+  const backendUrl = 'http://hostel-grievance-portal.onrender.com/api/grievances';
   script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */
-    socket = io(backendUrl);
+    socket = io(backendUrl, {
+      transports: ['polling'],
+      upgrade: false,
+      rememberUpgrade: false,
+      forceNew: true,
+      timeout: 5000,
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 1000
+    });
     socket.on('connect', () => {
       indicator.textContent = '🟢 Live';
       indicator.style.color = 'var(--success)';
@@ -56,26 +138,237 @@ function initSocket() {
   document.head.appendChild(script);
 }
 
+// ── Direct API Test ─────────────────────────────────────────────
+async function testAPIConnectivity() {
+  console.log("🧪 Starting direct API connectivity test...");
+  
+  // Test 0: Check if backend server is running at all (try multiple endpoints)
+  let serverRunning = false;
+  
+  // Try ping endpoint first (simplest)
+  try {
+    console.log("🔍 Test 0a: Ping endpoint...");
+    const pingResponse = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/ping', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (pingResponse.ok) {
+      const data = await pingResponse.json();
+      console.log("✅ Ping endpoint working:", data);
+      serverRunning = true;
+    }
+  } catch (error) {
+    console.log("❌ Ping endpoint failed:", error.message);
+  }
+  
+  // Try test endpoint if ping failed
+  if (!serverRunning) {
+    try {
+      console.log("🔍 Test 0b: Test endpoint...");
+      const testResponse = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/test', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (testResponse.ok) {
+        const data = await testResponse.json();
+        console.log("✅ Test endpoint working:", data);
+        serverRunning = true;
+      }
+    } catch (error) {
+      console.log("❌ Test endpoint failed:", error.message);
+    }
+  }
+  
+  // Try health endpoint if others failed
+  if (!serverRunning) {
+    try {
+      console.log("🔍 Test 0c: Health endpoint...");
+      const healthResponse = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (healthResponse.ok) {
+        const data = await healthResponse.json();
+        console.log("✅ Health endpoint working:", data);
+        serverRunning = true;
+      }
+    } catch (error) {
+      console.log("❌ Health endpoint failed:", error.message);
+    }
+  }
+  
+  // Show final result
+  if (serverRunning) {
+    showToast('✅ Backend server is running on port 5000', 'success');
+  } else {
+    showToast('❌ Backend server is NOT running or not accessible', 'error');
+    return; // Stop further tests if server is not accessible
+  }
+  
+  // Test 1: Direct fetch without auth
+  try {
+    console.log("🔍 Test 1: Direct fetch to health endpoint...");
+    const response = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log("✅ Direct health check successful:", data);
+      showToast('✅ Health endpoint working', 'success');
+    } else {
+      console.error("❌ Direct health check failed:", response.status, response.statusText);
+      showToast('❌ Health endpoint failed', 'error');
+    }
+  } catch (error) {
+    console.error("❌ Direct health check error:", error);
+    showToast('❌ Health endpoint error', 'error');
+  }
+  
+  // Test 2: Test with auth
+  try {
+    console.log("🔍 Test 2: Health check with auth...");
+    const healthData = await apiGet('/api/health');
+    console.log("✅ Auth health check successful:", healthData);
+  } catch (error) {
+    console.error("❌ Auth health check failed:", error);
+  }
+  
+  // Test 3: Test admin endpoint
+  try {
+    console.log("🔍 Test 3: Admin complaints endpoint...");
+    const complaintsData = await apiGet('/api/admin/complaints?page=1');
+    console.log("✅ Admin complaints successful:", complaintsData);
+  } catch (error) {
+    console.error("❌ Admin complaints failed:", error);
+  }
+}
+
 // ── Admin Stats ───────────────────────────────────────────────
 async function loadAdminStats() {
+  console.log("🚀 Starting admin stats loading...");
+  
   try {
-    const [allData, pend, prog, res] = await Promise.all([
-      apiGet('/api/admin/complaints?page=1'),
-      apiGet('/api/admin/complaints?status=Pending&page=1'),
-      apiGet('/api/admin/complaints?status=In%20Progress&page=1'),
-      apiGet('/api/admin/complaints?status=Resolved&page=1'),
-    ]);
-    document.getElementById('statTotal').textContent = allData.pagination.total;
-    document.getElementById('statPending').textContent = pend.pagination.total;
-    document.getElementById('statInProgress').textContent = prog.pagination.total;
-    document.getElementById('statResolved').textContent = res.pagination.total;
+    // First check if user is authenticated
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (!token || !user) {
+      console.error("❌ No authentication found");
+      showToast('Please login to access admin dashboard', 'error');
+      return;
+    }
+    
+    console.log("✅ User authenticated:", user.name, "Role:", user.role);
+    
+    // Simple sequential loading to avoid Promise.all issues
+    console.log("🔍 Loading total complaints...");
+    const allData = await apiGet('/api/admin/complaints?page=1');
+    
+    // ✅ FIX: Check if data exists before using it
+    if (!allData) {
+      console.error("❌ Failed to load total complaints data");
+      return;
+    }
+    
+    console.log("🔍 Loading pending complaints...");
+    const pend = await apiGet('/api/admin/complaints?status=Pending&page=1');
+    
+    if (!pend) {
+      console.error("❌ Failed to load pending complaints data");
+      return;
+    }
+    
+    console.log("🔍 Loading in-progress complaints...");
+    const prog = await apiGet('/api/admin/complaints?status=In%20Progress&page=1');
+    
+    if (!prog) {
+      console.error("❌ Failed to load in-progress complaints data");
+      return;
+    }
+    
+    console.log("🔍 Loading resolved complaints...");
+    const res = await apiGet('/api/admin/complaints?status=Resolved&page=1');
+    
+    if (!res) {
+      console.error("❌ Failed to load resolved complaints data");
+      return;
+    }
+    
+    console.log("✅ All data loaded successfully");
+    
+    // Update stats with safe access
+    const totalEl = document.getElementById('statTotal');
+    const pendingEl = document.getElementById('statPending');
+    const inProgressEl = document.getElementById('statInProgress');
+    const resolvedEl = document.getElementById('statResolved');
+    
+    if (totalEl) totalEl.textContent = allData.pagination?.total || '0';
+    if (pendingEl) pendingEl.textContent = pend.pagination?.total || '0';
+    if (inProgressEl) inProgressEl.textContent = prog.pagination?.total || '0';
+    if (resolvedEl) resolvedEl.textContent = res.pagination?.total || '0';
 
-    // Draw mini charts with analytics data
-    const analytics = await apiGet('/api/admin/analytics');
-    drawStatusChart('statusChartMini', analytics.analytics.byStatus);
-    drawCategoryChart('categoryChartMini', analytics.analytics.byCategory);
+    console.log("✅ Stats updated successfully");
+
+    // Load analytics
+    try {
+      console.log("🔍 Loading analytics data...");
+      const analytics = await apiGet('/api/admin/analytics');
+      
+      // ✅ FIX: Check if analytics data exists before using it
+      if (!analytics) {
+        console.error("❌ Failed to load analytics data");
+        // Show placeholder data for charts
+        drawStatusChart('statusChartMini', { Pending: 0, 'In Progress': 0, Resolved: 0 });
+        drawCategoryChart('categoryChartMini', { Maintenance: 0, Food: 0, Cleaning: 0, Other: 0 });
+        return;
+      }
+      
+      console.log("✅ Analytics data received:", analytics);
+      
+      if (analytics.analytics?.byStatus) {
+        drawStatusChart('statusChartMini', analytics.analytics.byStatus);
+      }
+      if (analytics.analytics?.byCategory) {
+        drawCategoryChart('categoryChartMini', analytics.analytics.byCategory);
+      }
+    } catch (analyticsErr) {
+      console.error('Analytics loading failed:', analyticsErr.message);
+      // Show placeholder data for charts
+      drawStatusChart('statusChartMini', { Pending: 0, 'In Progress': 0, Resolved: 0 });
+      drawCategoryChart('categoryChartMini', { Maintenance: 0, Food: 0, Cleaning: 0, Other: 0 });
+    }
+    
+    showToast('Admin dashboard loaded successfully', 'success');
+    
   } catch (err) {
-    console.error('loadAdminStats:', err.message);
+    console.error('❌ loadAdminStats failed:', err.message);
+    console.error('Full error details:', err);
+    
+    // Set fallback values
+    const totalEl = document.getElementById('statTotal');
+    const pendingEl = document.getElementById('statPending');
+    const inProgressEl = document.getElementById('statInProgress');
+    const resolvedEl = document.getElementById('statResolved');
+    
+    if (totalEl) totalEl.textContent = '0';
+    if (pendingEl) pendingEl.textContent = '0';
+    if (inProgressEl) inProgressEl.textContent = '0';
+    if (resolvedEl) resolvedEl.textContent = '0';
+    
+    showToast('Failed to load admin data. Check console for details.', 'error');
   }
 }
 
@@ -84,6 +377,14 @@ async function loadRecentComplaints() {
   const tbody = document.getElementById('recentComplaintsBody');
   try {
     const data = await apiGet('/api/admin/complaints?page=1');
+    
+    // ✅ FIX: Check if data exists before using it
+    if (!data) {
+      console.error("❌ Failed to load recent complaints data");
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load complaints</p></div></td></tr>`;
+      return;
+    }
+    
     const list = data.complaints.slice(0, 5);
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><p>No complaints yet</p></div></td></tr>`;
@@ -107,43 +408,65 @@ async function loadRecentComplaints() {
 
 // ── All Complaints Table ──────────────────────────────────────
 async function loadAllComplaints(page = adminCurrentPage) {
-  console.log("🔍 loadAllComplaints: Starting with page:", page); // Debug log
+  console.log("� loadAllComplaints: Starting with page:", page);
   adminCurrentPage = page;
+  
+  // Get elements safely
   const tbody = document.getElementById('adminComplaintsBody');
   const paginationEl = document.getElementById('adminPaginationContainer');
   const countEl = document.getElementById('complaintCount');
+  
+  if (!tbody) {
+    console.error("❌ adminComplaintsBody not found");
+    return;
+  }
+  
+  // Show loading state
   tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></div></td></tr>`;
 
-  const search = encodeURIComponent(document.getElementById('adminSearch').value.trim());
-  const status = encodeURIComponent(document.getElementById('adminFilterStatus').value);
-  const category = encodeURIComponent(document.getElementById('adminFilterCategory').value);
-  const dateFrom = document.getElementById('adminDateFrom').value;
-  const dateTo = document.getElementById('adminDateTo').value;
+  // Get filter values safely
+  const searchEl = document.getElementById('adminSearch');
+  const statusEl = document.getElementById('adminFilterStatus');
+  const categoryEl = document.getElementById('adminFilterCategory');
+  const dateFromEl = document.getElementById('adminDateFrom');
+  const dateToEl = document.getElementById('adminDateTo');
+  
+  const search = searchEl ? encodeURIComponent(searchEl.value.trim()) : '';
+  const status = statusEl ? encodeURIComponent(statusEl.value) : '';
+  const category = categoryEl ? encodeURIComponent(categoryEl.value) : '';
+  const dateFrom = dateFromEl ? dateFromEl.value : '';
+  const dateTo = dateToEl ? dateToEl.value : '';
 
   let query = `/api/admin/complaints?page=${page}&search=${search}&status=${status}&category=${category}`;
   if (dateFrom) query += `&dateFrom=${dateFrom}`;
   if (dateTo) query += `&dateTo=${dateTo}`;
 
-  console.log("🔍 loadAllComplaints: Query:", query); // Debug log
+  console.log("🔍 Final query:", query);
 
   try {
+    console.log("🚀 Fetching complaints...");
     const data = await apiGet(query);
-    console.log("🔍 loadAllComplaints: API response:", data); // Debug log
+    console.log("✅ Data received:", data);
     
-    if (!data.success || !data.complaints) {
-      console.error("🔍 loadAllComplaints: Invalid response:", data); // Debug log
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">❌</div><p>Failed to load complaints</p></div></td></tr>`;
-      paginationEl.innerHTML = '';
-      countEl.textContent = '0 complaint(s)';
+    // ✅ FIX: Check if data exists before using it
+    if (!data) {
+      console.error("❌ Failed to load complaints data");
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load complaints</p></div></td></tr>`;
       return;
     }
     
+    if (!data.success) {
+      throw new Error(data?.message || 'Failed to fetch complaints');
+    }
+    
     const list = data.complaints || [];
-    countEl.textContent = `${data.pagination?.total || list.length} complaint(s)`;
+    if (countEl) {
+      countEl.textContent = `${data.pagination?.total || list.length} complaint(s)`;
+    }
 
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">�</div><p>No complaints found</p></div></td></tr>`;
-      paginationEl.innerHTML = '';
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><p>No complaints found</p></div></td></tr>`;
+      if (paginationEl) paginationEl.innerHTML = '';
       return;
     }
 

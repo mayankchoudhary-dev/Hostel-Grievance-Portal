@@ -8,6 +8,39 @@
   <link rel="stylesheet" href="css/style.css" />
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Force clear cached API URLs -->
+  <script>
+    // Clear all storage
+    localStorage.removeItem('api_base');
+    localStorage.removeItem('API_BASE');
+    localStorage.removeItem('hgp_token');
+    localStorage.removeItem('hgp_user');
+    sessionStorage.removeItem('api_base');
+    sessionStorage.removeItem('API_BASE');
+    
+    // Clear service worker cache if exists
+    if ('serviceWorker' in navigator && 'caches' in window) {
+      caches.keys().then(cacheNames => {
+        cacheNames.forEach(cacheName => {
+          console.log('🧹 Deleting cache:', cacheName);
+          caches.delete(cacheName);
+        });
+      });
+      
+      // Unregister service workers
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          console.log('🧹 Unregistering service worker:', registration);
+          registration.unregister();
+        });
+      });
+    }
+    
+    // Force API_BASE to 5000
+    window.API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+    console.log('🧹 Admin Dashboard: Cleared all caches, set API_BASE to:', window.API_BASE);
+  </script>
 </head>
 <body>
 <div class="dashboard-layout">
@@ -58,6 +91,10 @@
       </div>
       <div class="topbar-actions">
         <button class="dark-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+        <button onclick="comprehensiveErrorFix()" title="Fix All Errors" style="background:linear-gradient(45deg, #e74c3c, #c0392b);color:white;border:none;padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-size:0.8rem;margin-right:0.5rem;font-weight:bold;">� FIX ALL</button>
+        <button onclick="comprehensiveJWTDebug()" title="JWT Debug" style="background:linear-gradient(45deg, #9b59b6, #8e44ad);color:white;border:none;padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-size:0.8rem;margin-right:0.5rem;font-weight:bold;">🔍 JWT DEBUG</button>
+        <button onclick="immediateAuthTest()" title="Test Auth Now" style="background:linear-gradient(45deg, #ff4757, #ff6348);color:white;border:none;padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-size:0.8rem;margin-right:0.5rem;font-weight:bold;">� TEST NOW</button>
+        <button onclick="comprehensiveAuthFix()" title="Complete Auth Fix" style="background:linear-gradient(45deg, #ff6b6b, #4ecdc4);color:white;border:none;padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-size:0.8rem;margin-right:0.5rem;font-weight:bold;">🔧 COMPLETE FIX</button>
         <span id="socketIndicator" title="Live updates" style="font-size:0.75rem;color:var(--text-muted);">⚪ Offline</span>
       </div>
     </header>
@@ -240,8 +277,325 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/env.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/env.js?v=1.0.1"></script>
+<script src="js/auth.js?v=1.0.1"></script>
+<script src="js/admin.js?v=1.0.1"></script>
+
+<script>
+// Quick test function - no authentication required
+async function quickTest() {
+  console.log("⚡ Quick test starting...");
+  
+  try {
+    // Test ping endpoint
+    console.log("🔍 Testing ping endpoint...");
+    const pingResponse = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/ping');
+    
+    if (pingResponse.ok) {
+      const data = await pingResponse.json();
+      console.log("✅ Ping successful:", data);
+      alert(`✅ Backend is running!\n\n${JSON.stringify(data, null, 2)}`);
+    } else {
+      console.error("❌ Ping failed:", pingResponse.status);
+      alert(`❌ Ping failed: ${pingResponse.status}`);
+    }
+  } catch (error) {
+    console.error("❌ Quick test error:", error);
+    alert(`❌ Connection failed: ${error.message}`);
+  }
+}
+
+// Clear all storage and redirect to login
+function clearAllStorage() {
+  console.log("🗑️ Clearing all storage...");
+  
+  // Clear all storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  console.log("✅ Storage cleared, redirecting to login...");
+  
+  // Show confirmation
+  alert("✅ Storage cleared! Please login again.\n\nRedirecting to login page...");
+  
+  // Redirect to login
+  window.location.href = 'index.html';
+}
+
+// COMPREHENSIVE AUTHENTICATION FIX - All 5 fixes in one
+function comprehensiveAuthFix() {
+  console.log("🔧 COMPREHENSIVE AUTHENTICATION FIX - All 5 fixes:");
+  console.log("===================================================");
+  
+  // FIX 1: Clear old broken token
+  console.log("🗑️ FIX 1: Clearing old broken token...");
+  localStorage.clear();
+  sessionStorage.clear();
+  console.log("✅ Storage cleared");
+  
+  // FIX 2: Login again (fresh token) - redirect to login
+  console.log("🔄 FIX 2: Redirecting to login for fresh token...");
+  alert("🔧 COMPREHENSIVE AUTH FIX APPLIED!\n\n✅ FIX 1: Old token cleared\n🔄 FIX 2: Please login again for fresh token\n\nRedirecting to login page...");
+  
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 2000);
+}
+
+// COMPREHENSIVE ERROR FIX - Address all 401 and Socket.IO errors
+function comprehensiveErrorFix() {
+  console.log("🔧 COMPREHENSIVE ERROR FIX - All Issues:");
+  console.log("========================================");
+  
+  // Step 1: Clear all authentication data
+  console.log("🗑️ Step 1: Clearing all authentication data...");
+  localStorage.clear();
+  sessionStorage.clear();
+  console.log("✅ All storage cleared");
+  
+  // Step 2: Clear any cached API configurations
+  console.log("🧹 Step 2: Clearing cached API configurations...");
+  localStorage.removeItem('api_base');
+  localStorage.removeItem('API_BASE');
+  sessionStorage.removeItem('api_base');
+  sessionStorage.removeItem('API_BASE');
+  console.log("✅ API configurations cleared");
+  
+  // Step 3: Reset Socket.IO connections
+  console.log("🔄 Step 3: Resetting Socket.IO connections...");
+  if (window.socket) {
+    window.socket.disconnect();
+    window.socket = null;
+  }
+  console.log("✅ Socket.IO connections reset");
+  
+  // Step 4: Force fresh login
+  console.log("🔐 Step 4: Redirecting to fresh login...");
+  alert("🔧 COMPREHENSIVE ERROR FIX APPLIED!\n\n✅ Cleared all authentication data\n✅ Reset API configurations\n✅ Reset Socket.IO connections\n✅ Redirecting to fresh login\n\nPlease login with fresh credentials.");
+  
+  // Force redirect to login
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 2000);
+}
+
+// COMPREHENSIVE JWT DEBUGGING - User's exact steps
+function comprehensiveJWTDebug() {
+  console.log("🔍 COMPREHENSIVE JWT DEBUGGING - User's Steps:");
+  console.log("=================================================");
+  
+  // ✅ Step 1: Console check
+  console.log("✅ Step 1: Console check");
+  const token = localStorage.getItem('token');
+  console.log("TOKEN SENT:", token);
+  
+  if (!token) {
+    console.error("❌ Token is null - not stored after login");
+    alert("❌ Token not stored after login!\n\nPlease login again.");
+    return;
+  }
+  
+  // ✅ Step 2: Check token format
+  console.log("✅ Step 2: Token format check");
+  console.log("Token preview:", token.substring(0, 50) + '...');
+  console.log("Token starts with eyJ:", token.startsWith('eyJ') ? 'YES ✅' : 'NO ❌');
+  
+  if (!token.startsWith('eyJ')) {
+    console.error("❌ Token format is corrupted");
+    alert("❌ Token format is corrupted!\n\nToken should start with 'eyJ'.");
+    return;
+  }
+  
+  // ✅ Step 3: Decode token to check expiry
+  console.log("✅ Step 3: Token expiry check");
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    console.log("Token payload:", payload);
+    console.log("Issued at (iat):", payload.iat);
+    console.log("Expires at (exp):", payload.exp);
+    console.log("Current time:", now);
+    console.log("Time until expiry:", payload.exp - now, 'seconds');
+    
+    if (payload.exp < now) {
+      console.error("❌ Token has expired");
+      alert("❌ Token has expired!\n\nPlease login again.");
+      return;
+    }
+  } catch (e) {
+    console.error("❌ Failed to decode token:", e);
+    alert("❌ Token is corrupted!\n\nCannot decode token payload.");
+    return;
+  }
+  
+  // ✅ Step 4: Test backend JWT verification
+  console.log("✅ Step 4: Backend JWT verification test");
+  console.log("Testing with /api/health endpoint...");
+  
+  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => {
+    console.log("Response status:", response.status);
+    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+    
+    if (response.ok) {
+      return response.json();
+    } else if (response.status === 401) {
+      return response.text().then(text => {
+        console.error("❌ 401 Response body:", text);
+        throw new Error(`401 Unauthorized: ${text}`);
+      });
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  })
+  .then(data => {
+    console.log("✅ Backend JWT verification successful!");
+    console.log("Response data:", data);
+    
+    alert(`✅ JWT Authentication is WORKING!\n\n✅ Token format: Valid\n✅ Token expiry: Valid\n✅ Backend verification: Success\n\nAll systems operational!`);
+  })
+  .catch(error => {
+    console.error("❌ Backend JWT verification failed:", error);
+    
+    // Step 5: Manual testing instructions
+    console.log("✅ Step 5: Manual testing with jwt.io");
+    console.log("👉 Copy this token and test at jwt.io:");
+    console.log(token);
+    
+    alert(`❌ JWT Verification FAILED!\n\nError: ${error.message}\n\n🔧 NEXT STEPS:\n1. Copy token from console\n2. Test at jwt.io\n3. Check if signature is invalid\n4. Check JWT_SECRET consistency\n\nToken copied to console for testing.`);
+  });
+}
+
+// IMMEDIATE FIX - Test authentication right now
+function immediateAuthTest() {
+  console.log("🚨 IMMEDIATE AUTHENTICATION TEST:");
+  
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  console.log("Token:", token ? token.substring(0, 50) + '...' : 'null');
+  console.log("User:", user ? JSON.parse(user) : null);
+  
+  if (!token || !user) {
+    console.error("❌ No token or user found!");
+    alert("❌ No authentication data found!\n\nPlease login first.");
+    return;
+  }
+  
+  // Test with a simple API call
+  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => {
+    console.log("Response status:", response.status);
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  })
+  .then(data => {
+    console.log("✅ Authentication working:", data);
+    alert("✅ Authentication is working!\n\nToken is valid and API calls are successful.");
+  })
+  .catch(error => {
+    console.error("❌ Authentication failed:", error);
+    alert(`❌ Authentication failed!\n\nError: ${error.message}\n\nPlease click "🔧 COMPLETE FIX" and login again.`);
+  });
+}
+
+// Comprehensive authentication test
+function testAuthentication() {
+  console.log("🔐 Starting comprehensive authentication test...");
+  
+  // Step 1: Check token exists
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  console.log("🔍 Step 1: Token & User Check");
+  console.log("  Token exists:", !!token);
+  console.log("  User exists:", !!user);
+  
+  if (!token) {
+    alert("❌ No token found!\n\nPlease login first.");
+    return;
+  }
+  
+  // Step 2: Check token format
+  console.log("🔍 Step 2: Token Format Check");
+  const isJWT = token.startsWith('eyJ');
+  console.log("  Token format:", isJWT ? "JWT ✅" : "Invalid ❌");
+  
+  if (!isJWT) {
+    alert("❌ Invalid token format!\n\nToken should start with 'eyJ'.\n\nPlease login again.");
+    return;
+  }
+  
+  // Step 3: Check user data
+  console.log("🔍 Step 3: User Data Check");
+  let userData = null;
+  try {
+    userData = JSON.parse(user);
+    console.log("  User data:", userData);
+    console.log("  User role:", userData?.role);
+    
+    if (!userData || !userData.role) {
+      throw new Error("Invalid user data");
+    }
+  } catch (e) {
+    alert("❌ Invalid user data!\n\nUser data is corrupted.\n\nPlease login again.");
+    return;
+  }
+  
+  // Step 4: Test API call with authentication
+  console.log("🔍 Step 4: API Authentication Test");
+  console.log("  Testing GET /api/health with auth...");
+  
+  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => {
+    console.log("  Response status:", response.status);
+    console.log("  Response ok:", response.ok);
+    
+    if (response.ok) {
+      return response.json();
+    } else if (response.status === 401) {
+      throw new Error('401 Unauthorized - Invalid token');
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  })
+  .then(data => {
+    console.log("✅ Authentication test successful!");
+    console.log("  Response data:", data);
+    
+    alert(`✅ Authentication Test Passed!\n\n✅ Token: Valid\n✅ User: ${userData.name} (${userData.role})\n✅ API: Working\n\nAll systems are go!`);
+  })
+  .catch(error => {
+    console.error("❌ Authentication test failed:", error);
+    
+    if (error.message.includes('401')) {
+      alert(`❌ Authentication Failed!\n\n❌ Error: Invalid or expired token\n\n🔧 Solution: Click "� COMPLETE FIX" and login again.`);
+    } else {
+      alert(`❌ Authentication Failed!\n\n❌ Error: ${error.message}\n\n🔧 Check if backend is running on port 5000`);
+    }
+  });
+}
+</script>
 </body>
 </html>

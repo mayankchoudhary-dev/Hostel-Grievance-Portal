@@ -1,0 +1,581 @@
+THIS SHOULD BREAK PAGEs
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Register as a student on the Hostel Grievance Portal" />
+  <title>Register | Hostel Grievance Portal</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 100%;
+      max-width: 500px;
+    }
+    
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .logo-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .auth-logo h1 {
+      color: white;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+    
+    .auth-logo p {
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      color: white;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .password-strength {
+      margin-top: 0.5rem;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+    
+    .password-strength-bar {
+      height: 100%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    
+    .strength-weak { background: #ef4444; width: 33%; }
+    .strength-medium { background: #f59e0b; width: 66%; }
+    .strength-strong { background: #10b981; width: 100%; }
+    
+    .btn-auth {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-auth:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn-auth:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 1.5rem 0;
+    }
+    
+    .auth-link {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+    }
+    
+    .auth-link a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .auth-link a:hover {
+      text-decoration: underline;
+    }
+    
+    .error-message {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 5px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .success-message {
+      color: #10b981;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 5px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .requirements {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-icon">🎓</div>
+        <h1>Create Account</h1>
+        <p>Register as a hostel student</p>
+      </div>
+
+      <!-- Debug Panel -->
+      <div id="debugPanel" style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 5px; margin-bottom: 1rem; font-size: 0.8rem; color: #ccc; display: none;">
+        <div><strong>Debug Info:</strong></div>
+        <div id="debugInfo"></div>
+      </div>
+
+      <form id="registerForm" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <input class="form-input" type="text" id="name" name="name"
+            placeholder="John Doe" required autocomplete="name" />
+          <div class="requirements">Please enter your full name as per college records</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email"
+            placeholder="you@example.com" required autocomplete="email" />
+          <div class="requirements">Use your college email address</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="room_no">Room Number</label>
+          <input class="form-input" type="text" id="room_no" name="room_no"
+            placeholder="e.g. A-101" required />
+          <div class="requirements">Format: Block-Room (e.g., A-101, B-205)</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password"
+            placeholder="Minimum 6 characters" required autocomplete="new-password" />
+          <div class="password-strength">
+            <div class="password-strength-bar" id="passwordStrengthBar"></div>
+          </div>
+          <div class="requirements">Must be at least 6 characters with letters and numbers</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirmPassword">Confirm Password</label>
+          <input class="form-input" type="password" id="confirmPassword" name="confirmPassword"
+            placeholder="Re-enter password" required autocomplete="new-password" />
+        </div>
+
+        <div id="registerMessage" style="display:none;"></div>
+
+        <button type="submit" class="btn-auth" id="registerBtn">
+          <span id="registerBtnText">Create Account</span>
+          <span id="registerSpinner" class="spinner" style="display:none;"></span>
+        </button>
+      </form>
+
+      <div class="divider"></div>
+      <p class="auth-link">Already have an account? <a href="index.html">Sign in</a></p>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- Load environment first, then auth -->
+  <script>
+    // Set API_BASE to localhost backend
+    window.API_BASE = 'http://localhost:5000';
+    console.log('?? API_BASE set to:', window.API_BASE);
+  </script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Simple initialization - don't block page load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log("?? Registration page loaded successfully");
+      console.log("🚀 Registration page loaded successfully");
+      
+      // Clean up old tokens to avoid conflicts
+      localStorage.removeItem('hgp_token');
+      localStorage.removeItem('hgp_user');
+      console.log("🧹 Old tokens removed");
+      
+      // Check if already logged in
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (token && user) {
+        console.log("🔄 User already logged in, redirecting...");
+        window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
+        return;
+      }
+      
+      console.log("✅ Registration page ready for use");
+    });
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+      const strengthBar = document.getElementById('passwordStrengthBar');
+      let strength = 0;
+      
+      if (password.length >= 6) strength++;
+      if (password.length >= 10) strength++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[^a-zA-Z0-9]/.test(password)) strength++;
+      
+      strengthBar.className = 'password-strength-bar';
+      if (strength <= 2) strengthBar.classList.add('strength-weak');
+      else if (strength <= 4) strengthBar.classList.add('strength-medium');
+      else strengthBar.classList.add('strength-strong');
+      
+      return strength;
+    }
+
+    // Real-time password validation
+    document.getElementById('password').addEventListener('input', (e) => {
+      checkPasswordStrength(e.target.value);
+      
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      if (confirmPassword && e.target.value !== confirmPassword) {
+        document.getElementById('confirmPassword').style.borderColor = '#ef4444';
+      } else if (confirmPassword && e.target.value === confirmPassword) {
+        document.getElementById('confirmPassword').style.borderColor = '#10b981';
+      }
+    });
+
+    // Confirm password validation
+    document.getElementById('confirmPassword').addEventListener('input', (e) => {
+      const password = document.getElementById('password').value;
+      if (e.target.value !== password) {
+        e.target.style.borderColor = '#ef4444';
+      } else {
+        e.target.style.borderColor = '#10b981';
+      }
+    });
+
+    // Form submission
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('registerBtn');
+      const messageEl = document.getElementById('registerMessage');
+      
+      // ✅ STEP 1: PROVE THE ISSUE - Add form elements debugging
+      console.log("FORM ELEMENTS:", e.target.elements);
+      console.log("NAME FIELD:", e.target.elements.name?.value);
+      console.log("EMAIL FIELD:", e.target.elements.email?.value);
+      console.log("ROOM FIELD:", e.target.elements.room_no?.value);
+      
+      // ✅ STEP 2: SIMPLE FIX - Direct DOM access (BEST FIX)
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const room_no = document.getElementById('room_no').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validate before sending
+      if (!name || name.trim() === '') {
+        alert("❌ Name is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (!email || email.trim() === '') {
+        alert("❌ Email is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      // Check email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert("❌ Please enter a valid email address");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (!room_no || room_no.trim() === '') {
+        alert("❌ Room number is required");
+        btn.disabled = false;
+        return;
+      }
+      
+      // Password rules
+      if (!password || password.length < 6) {
+        alert("❌ Password must be at least 6 characters");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        alert("❌ Passwords do not match");
+        btn.disabled = false;
+        return;
+      }
+      
+      // FINAL VALUES DEBUG - This will show the real issue
+      console.log("🚨 FINAL VALUES BEFORE SEND:", {
+        name: `"${name}"`,
+        email: `"${email}"`, 
+        room_no: `"${room_no}"`,
+        password: `"${password ? '***' : ''}"`
+      });
+      console.log("🔍 Value lengths:", {
+        name: name.length,
+        email: email.length,
+        room_no: room_no.length,
+        password: password.length
+      });
+      
+      // Show loading state
+      document.getElementById('registerBtnText').style.display = 'none';
+      document.getElementById('registerSpinner').style.display = 'inline-block';
+      btn.disabled = true;
+
+      try {
+        console.log("🚀 Starting registration request...");
+        console.log("📤 Sending:", { name, email, room_no, password: password ? "***" : undefined });
+        
+        // Debug: Check individual values
+        console.log("🔍 Individual values check:");
+        console.log("  name:", `"${name}"`, `(length: ${name.length})`);
+        console.log("  email:", `"${email}"`, `(length: ${email.length})`);
+        console.log("  room_no:", `"${room_no}"`, `(length: ${room_no.length})`);
+        console.log("  password:", `"${password ? "***" : ""}"`, `(length: ${password.length})`);
+        
+        // Force API_BASE to port 5000
+        const API_URL = 'http://localhost:5000';
+        console.log("🔍 Using API_URL:", API_URL);
+        console.log("🔍 window.API_BASE:", window.API_BASE);
+        
+        // Direct fetch with proper error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
+        const response = await fetch(API_URL + '/api/register', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            room_no
+          }),
+          mode: 'cors',
+          cache: 'no-cache',
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ Registration failed:", response.status, errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const responseText = await response.text();
+        console.log("📄 Raw response text:", responseText);
+        
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("❌ JSON parse failed:", parseError);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        console.log("🔍 Registration response:", data);
+        console.log("🔍 User role:", data.user?.role);
+        console.log("🔍 Redirect target:", data.user?.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html');
+        
+        // Validate response structure
+        if (!data || typeof data !== 'object') {
+          console.error("🔍 Invalid response structure:", data);
+          throw new Error('Invalid server response. Please try again.');
+        }
+        
+        if (!data.success) {
+          console.error("🔍 Registration not successful:", data.message);
+          throw new Error(data.message || 'Registration failed. Please try again.');
+        }
+        
+        if (!data.token) {
+          console.error("🔍 No token in response:", data);
+          throw new Error('Server did not return authentication token. Please try logging in manually.');
+        }
+        
+        if (!data.user) {
+          console.error("🔍 No user data in response:", data);
+          throw new Error('Server did not return user information. Please try again.');
+        }
+        
+        // Store user data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        console.log("🔍 User data stored:", {
+          token: data.token ? 'Present' : 'Missing',
+          user: data.user ? 'Present' : 'Missing',
+          role: data.user?.role || 'Unknown'
+        });
+        
+        // Show success message
+        messageEl.textContent = 'Account created successfully! Redirecting to dashboard...';
+        messageEl.className = 'success-message';
+        messageEl.style.display = 'block';
+        
+        showToast('Welcome to Hostel Grievance Portal, ' + data.user.name + '!', 'success');
+        
+        // Redirect to dashboard immediately
+        const redirectTarget = data.user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
+        console.log("🔍 About to redirect to:", redirectTarget);
+        console.log("🔍 Current location:", window.location.href);
+        
+        // Try immediate redirect first
+        try {
+          console.log("🔍 Attempting immediate redirect...");
+          window.location.href = redirectTarget;
+          
+          // Fallback: try location.assign if href doesn't work
+          setTimeout(() => {
+            if (window.location.href.includes('register.html')) {
+              console.log("🔍 Immediate redirect failed, trying location.assign...");
+              window.location.assign(redirectTarget);
+            }
+          }, 500);
+          
+          // Final fallback: try location.replace
+          setTimeout(() => {
+            if (window.location.href.includes('register.html')) {
+              console.log("🔍 location.assign failed, trying location.replace...");
+              window.location.replace(redirectTarget);
+            }
+          }, 1000);
+          
+        } catch (redirectError) {
+          console.error("🔍 Redirect error:", redirectError);
+          // Manual redirect as last resort
+          setTimeout(() => {
+            window.location.href = redirectTarget;
+          }, 1500);
+        }
+        
+      } catch (err) {
+        console.error("❌ Registration failed:", err);
+        
+        // Provide specific error messages
+        let errorMessage = err.message || 'Registration failed. Please try again.';
+        
+        if (err.message.includes('token')) {
+          errorMessage = 'Authentication issue. Please try logging in manually.';
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (err.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please try again.';
+        } else if (err.message.includes('409')) {
+          errorMessage = 'Email already registered. Please use a different email or login.';
+        } else if (err.message.includes('401')) {
+          errorMessage = 'Invalid credentials. Please check your information.';
+        } else if (err.message.includes('404')) {
+          errorMessage = 'Registration endpoint not found. Please check if the backend server is running correctly.';
+        }
+        
+        messageEl.textContent = errorMessage;
+        messageEl.className = 'error-message';
+        messageEl.style.display = 'block';
+      } finally {
+        document.getElementById('registerBtnText').style.display = 'inline';
+        document.getElementById('registerSpinner').style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

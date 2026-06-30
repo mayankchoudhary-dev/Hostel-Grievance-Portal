@@ -1,5 +1,13 @@
 node_modules/
 .env
+<<<<<<< HEAD
 .env.*
 dist/
 build/
+=======
+package-lock.json
+dist/
+build/
+.DS_Store
+uploads/
+>>>>>>> 831727231d54474829192e31f748d733091a4069

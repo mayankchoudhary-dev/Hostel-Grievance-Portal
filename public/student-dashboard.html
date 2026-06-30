@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Student Dashboard - Hostel Grievance Portal" />
+  <title>Student Dashboard | HGP</title>
+  <link rel="stylesheet" href="css/style.css" />
+  
+  <!-- Force API_BASE to 5000 -->
+  <script>
+    window.API_BASE = 'http://localhost:5000';
+    console.log('🧹 Student Dashboard: Set API_BASE to:', window.API_BASE);
+  </script>
+</head>
+<body>
+<div class="dashboard-layout">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon">🏠</div>
+      <div>
+        <div class="sidebar-title">HGP</div>
+        <div class="sidebar-subtitle">Grievance Portal</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu</div>
+      <button class="nav-item active" id="navDashboard" onclick="showSection('dashboard')">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </button>
+      <button class="nav-item" id="navSubmit" onclick="showSection('submit')">
+        <span class="nav-icon">➕</span><span>Submit Complaint</span>
+      </button>
+      <button class="nav-item" id="navComplaints" onclick="showSection('complaints'); loadMyComplaints();">
+        <span class="nav-icon">📋</span><span>My Complaints</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarName">Loading...</div>
+          <div class="user-role">Student</div>
+        </div>
+      </div>
+      <button class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span><span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN CONTENT ===================== -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-subtitle">Welcome back, <span id="topbarName">Student</span></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="dark-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+        <span id="socketIndicator" title="Live updates" style="font-size:0.75rem;color:var(--text-muted);">⚪ Offline</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ======= SECTION: DASHBOARD ======= -->
+      <section id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card total">
+            <div class="stat-icon">📁</div>
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total Complaints</div>
+          </div>
+          <div class="stat-card pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number" id="statPending">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card in-progress">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-number" id="statInProgress">0</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+          <div class="stat-card resolved">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" id="statResolved">0</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+        </div>
+
+        <!-- Recent complaints preview -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Complaints</span>
+            <button class="btn btn-primary btn-sm" onclick="showSection('complaints'); loadMyComplaints();">View All</button>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-wrapper">
+              <table>
+                <thead><tr>
+                  <th>#</th><th>Title</th><th>Category</th><th>Status</th><th>Date</th>
+                </tr></thead>
+                <tbody id="recentComplaintsBody">
+                  <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>No complaints yet</p></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: SUBMIT COMPLAINT ======= -->
+      <section id="sec-submit" style="display:none;">
+        <div class="card" style="max-width:640px;">
+          <div class="card-header">
+            <span class="card-title">➕ Submit New Complaint</span>
+          </div>
+          <div class="card-body">
+            <form id="submitComplaintForm" novalidate>
+              <div class="form-group">
+                <label class="form-label-dark" for="cTitle">Title *</label>
+                <input class="input" type="text" id="cTitle" name="title"
+                  placeholder="Brief description of the issue" required maxlength="200" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-dark" for="cCategory">Category *</label>
+                <select class="input" id="cCategory" name="category" required>
+                  <option value="">-- Select Category --</option>
+                  <option value="Electricity">⚡ Electricity</option>
+                  <option value="Water">💧 Water</option>
+                  <option value="Mess">🍽️ Mess</option>
+                  <option value="Cleanliness">🧹 Cleanliness</option>
+                  <option value="Internet">📶 Internet</option>
+                  <option value="Other">📌 Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-dark" for="cPriority">Priority *</label>
+                <select class="input" id="cPriority" name="priority" required>
+                  <option value="Low">🟢 Low</option>
+                  <option value="Medium" selected>🟡 Medium</option>
+                  <option value="High">🔴 High</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-dark" for="cDesc">Description *</label>
+                <textarea class="input" id="cDesc" name="description"
+                  rows="4" placeholder="Explain the issue in detail..." required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-dark">Attach Image (Optional)</label>
+                <div class="file-upload-area" id="fileDropArea">
+                  <input type="file" id="cImage" name="image" accept="image/*" />
+                  <div>📸 Click or drag image here</div>
+                  <div style="font-size:0.75rem;margin-top:0.25rem;opacity:0.6;">JPG, PNG, GIF, WEBP — max 5 MB</div>
+                  <div class="file-preview" id="filePreviewText"></div>
+                </div>
+              </div>
+
+              <div id="submitError" style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;display:none;"></div>
+
+              <div class="flex gap-1">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                  <span id="submitBtnText">Submit Complaint</span>
+                  <span id="submitSpinner" class="spinner" style="display:none;"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetSubmitForm()">Clear</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: MY COMPLAINTS ======= -->
+      <section id="sec-complaints" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 My Complaints</span>
+          </div>
+          <div class="card-body" style="padding-bottom:0;">
+            <div class="filters-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input class="input" type="text" id="searchInput" placeholder="Search complaints..." id="searchInput" />
+              </div>
+              <select class="input filter-select" id="filterStatus">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+              <select class="input filter-select" id="filterCategory">
+                <option value="">All Categories</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Water">Water</option>
+                <option value="Mess">Mess</option>
+                <option value="Cleanliness">Cleanliness</option>
+                <option value="Internet">Internet</option>
+                <option value="Other">Other</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="loadMyComplaints(1)">Filter</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Title</th><th>Category</th><th>Status</th>
+                <th>Priority</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="complaintsBody">
+                <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:1rem;">
+            <div id="paginationContainer" class="pagination"></div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end content-area -->
+  </main>
+</div>
+
+<!-- ======= EDIT MODAL ======= -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Edit Complaint</span>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="editComplaintForm">
+        <input type="hidden" id="editId" />
+        <div class="form-group">
+          <label class="form-label-dark">Title</label>
+          <input class="input" type="text" id="editTitle" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label-dark">Category</label>
+          <select class="input" id="editCategory">
+            <option value="Electricity">Electricity</option>
+            <option value="Water">Water</option>
+            <option value="Mess">Mess</option>
+            <option value="Cleanliness">Cleanliness</option>
+            <option value="Internet">Internet</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label-dark">Description</label>
+          <textarea class="input" id="editDesc" rows="4"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= VIEW COMPLAINT MODAL ======= -->
+<div class="modal-overlay hidden" id="viewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📄 Complaint Details</span>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="viewModalBody"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/env.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>

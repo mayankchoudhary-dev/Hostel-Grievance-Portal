@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Hostel Grievance Portal - Login to manage your complaints" />
+  <title>Login | Hostel Grievance Portal</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-icon">🏠</div>
+        <h1>Hostel Grievance Portal</h1>
+        <p>Login to your account</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email"
+            placeholder="you@example.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password"
+            placeholder="••••••" required autocomplete="current-password" />
+        </div>
+
+        <div id="loginMessage" class="text-muted" style="color:#ef4444;font-size:0.85rem;margin-bottom:0.75rem;display:none;"></div>
+
+        <button type="submit" class="btn-auth" id="loginBtn">
+          <span id="loginBtnText">Sign In</span>
+          <span id="loginSpinner" class="spinner" style="display:none;"></span>
+        </button>
+      </form>
+
+      <div class="divider"></div>
+
+      <p class="auth-link">
+        Don't have an account? <a href="register.html">Register here</a>
+      </p>
+      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+        Admin? Use your admin credentials above.
+      </p>
+      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+        Backend Status: <a href="http://localhost:5000/api/health" target="_blank">Check API Status</a>
+      </p>
+      <p class="auth-link" style="margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);">
+        <span id="backendStatus">Checking backend...</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Load environment first, then auth -->
+  <script>
+    // Set API_BASE directly for deployment
+    window.API_BASE = 'http://localhost:5000';
+    console.log('🌍 API_BASE set to:', window.API_BASE);
+  </script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Test backend connection before proceeding
+    async function initializePage() {
+      console.log("🚀 Initializing login page...");
+      console.log("🔍 Checking API_BASE:", window.API_BASE);
+      
+      // Make sure API_BASE is defined
+      if (!window.API_BASE) {
+        console.error("❌ API_BASE is undefined!");
+        const messageEl = document.getElementById('loginMessage');
+        messageEl.textContent = 'API configuration error. Please check environment variables.';
+        messageEl.className = 'error-message';
+        messageEl.style.display = 'block';
+        return;
+      }
+      
+      try {
+        // First test health endpoint
+        console.log("?? Testing health endpoint...");
+        const healthResponse = await fetch(window.API_BASE + '/api/health', {
+          method: 'GET',
+          mode: 'cors',
+          cache: 'no-cache'
+        });
+        
+        const statusEl = document.getElementById('backendStatus');
+        
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json();
+          console.log("?? Health check successful:", healthData);
+          statusEl.innerHTML = '?? Backend connected and running';
+          statusEl.style.color = 'green';
+        } else {
+          throw new Error(`Health check failed: ${healthResponse.status}`);
+        }
+        
+        console.log("?? Backend connection fully verified");
+        
+      } catch (error) {
+        console.error("?? Backend connection failed:", error);
+        statusEl.innerHTML = '?? Backend not running - Start with: "cd backend && node server.js"';
+        statusEl.style.color = 'red';
+        
+        const messageEl = document.getElementById('loginMessage');
+        
+        // Provide more specific error messages
+        if (error.message.includes('timeout')) {
+          messageEl.textContent = 'Backend server is not responding. Please start the backend first: Open terminal, run "cd backend && node server.js"';
+        } else if (error.message.includes('Failed to fetch')) {
+          messageEl.textContent = 'Backend server is not running. Please start it: Open terminal, run "cd backend && node server.js" then refresh this page.';
+        } else if (error.message.includes('CORS')) {
+          messageEl.textContent = 'CORS error. Backend server configuration issue.';
+        } else {
+          messageEl.textContent = 'Backend connection failed. Please ensure backend is running on http://localhost:5000. Start with: "cd backend && node server.js"';
+        }
+        
+        messageEl.className = 'error-message';
+        messageEl.style.display = 'block';
+        
+        // Add a retry button
+        const retryBtn = document.createElement('button');
+        retryBtn.textContent = 'Retry Connection';
+        retryBtn.className = 'btn-auth';
+        retryBtn.style.marginTop = '1rem';
+        retryBtn.onclick = () => {
+          messageEl.style.display = 'none';
+          retryBtn.remove();
+          initializePage();
+        };
+        messageEl.parentNode.insertBefore(retryBtn, messageEl.nextSibling);
+        
+        return;
+      }
+      
+      // Check if already logged in
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (token && user) {
+        console.log("?? User already logged in, redirecting...");
+        console.log("🔄 User already logged in, redirecting...");
+        window.location.href = user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
+        return;
+      }
+      
+      console.log("✅ Login page ready for use");
+    }
+
+    // Initialize page when DOM is ready
+    document.addEventListener('DOMContentLoaded', initializePage);
+
+    // Login form handler
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // VERY IMPORTANT - prevents page refresh
+      
+      const btn = document.getElementById('loginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const spinner = document.getElementById('loginSpinner');
+      const messageEl = document.getElementById('loginMessage');
+
+      // Reset state
+      messageEl.style.display = 'none';
+      btnText.style.display = 'none';
+      spinner.style.display = 'inline-block';
+      btn.disabled = true;
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        console.log("🚀 Starting login request...");
+        console.log("📤 Sending:", { email, password: password ? "***" : undefined });
+        
+        // Direct fetch with proper error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
+        const response = await fetch(window.API_BASE + '/api/login', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+          mode: 'cors',
+          cache: 'no-cache',
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        
+        console.log("📥 Response status:", response.status);
+        console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ Login failed:", response.status, errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const responseText = await response.text();
+        console.log("📄 Raw response text:", responseText);
+        
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error("❌ JSON parse failed:", parseError);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        console.log("✅ Login response:", data);
+        console.log("✅ Login success:", data);
+
+        if (response.ok && data && data.success) {
+          // Store user data
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          console.log("✅ User data stored:", {
+            token: data.token ? 'Present' : 'Missing',
+            user: data.user ? 'Present' : 'Missing',
+            role: data.user?.role || 'Unknown'
+          });
+          
+          // Show success message
+          messageEl.textContent = 'Login successful! Redirecting to dashboard...';
+          messageEl.className = 'success-message';
+          messageEl.style.display = 'block';
+          
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = data.user.role === 'admin' ? 'admin-dashboard.html' : 'student-dashboard.html';
+          }, 1000);
+          
+        } else {
+          console.log("❌ Login failed:", data?.message || 'Invalid response');
+          messageEl.textContent = data?.message || 'Login failed. Please check your credentials.';
+          messageEl.className = 'error-message';
+          messageEl.style.display = 'block';
+        }
+        
+      } catch (err) {
+        console.error("❌ Login error:", err);
+        
+        // Provide specific error messages
+        let errorMessage = err.message || 'Login failed. Please try again.';
+        
+        if (err.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please try again.';
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (err.message.includes('credentials') || err.message.includes('Invalid')) {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else if (err.message.includes('401')) {
+          errorMessage = 'Invalid credentials. Please check your email and password.';
+        } else if (err.message.includes('404')) {
+          errorMessage = 'Login endpoint not found. Please check if the backend server is running correctly.';
+        }
+        
+        messageEl.textContent = errorMessage;
+        messageEl.className = 'error-message';
+        messageEl.style.display = 'block';
+      } finally {
+        btnText.style.display = 'inline';
+        spinner.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

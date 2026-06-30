@@ -38,7 +38,7 @@
     }
     
     // Force API_BASE to 5000
-    window.API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+    window.API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
     console.log('🧹 Admin Dashboard: Cleared all caches, set API_BASE to:', window.API_BASE);
   </script>
 </head>
@@ -289,7 +289,7 @@ async function quickTest() {
   try {
     // Test ping endpoint
     console.log("🔍 Testing ping endpoint...");
-    const pingResponse = await fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/ping');
+    const pingResponse = await fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/ping');
     
     if (pingResponse.ok) {
       const data = await pingResponse.json();
@@ -432,7 +432,7 @@ function comprehensiveJWTDebug() {
   console.log("✅ Step 4: Backend JWT verification test");
   console.log("Testing with /api/health endpoint...");
   
-  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+  fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -489,7 +489,7 @@ function immediateAuthTest() {
   }
   
   // Test with a simple API call
-  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+  fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -561,7 +561,7 @@ function testAuthentication() {
   console.log("🔍 Step 4: API Authentication Test");
   console.log("  Testing GET /api/health with auth...");
   
-  fetch('http://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+  fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 // =============================================================
 
 // API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'http://localhost:5000';
+const API_BASE = window.API_BASE || 'http://https://hostel-grievance-portal.onrender.com';
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -319,7 +319,7 @@ async function apiDelete(endpoint) {
 }
 
 async function apiPostForm(url, formData) {
-  const res = await fetch("http://localhost:5000" + url, {
+  const res = await fetch("http://https://hostel-grievance-portal.onrender.com" + url, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + localStorage.getItem("token") // 🔥 FIX
@@ -430,7 +430,7 @@ function logout() {
   
   // Try multiple redirect methods in order of preference
   const redirects = [
-    'http://localhost:5000/index.html',  // Preferred: Frontend server
+    'http://https://hostel-grievance-portal.onrender.com/index.html',  // Preferred: Frontend server
     'http://127.0.0.1:5000/index.html', // Alternative: localhost IP
     'index.html',  // Fallback: Direct file
     '../index.html',  // Another fallback: Relative path

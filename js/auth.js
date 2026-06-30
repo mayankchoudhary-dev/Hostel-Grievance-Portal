@@ -86,12 +86,12 @@ sessionStorage.removeItem('API_BASE');
 sessionStorage.removeItem('hgp_api_base');
 
 // Force overwrite any existing value
-window.API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
-const API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+window.API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
+const API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
 
 // Prevent any future changes to API_BASE
 Object.defineProperty(window, 'API_BASE', {
-  value: 'http://hostel-grievance-portal.onrender.com/api/grievances',
+  value: 'http://https://hostel-grievance-portal.onrender.com/api/grievances',
   writable: false,
   configurable: false
 });
@@ -161,7 +161,7 @@ const connectionPool = {
 async function testConnection() {
   try {
     // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
-    const FORCED_API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+    const FORCED_API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
     
     console.log("Testing connection to:", FORCED_API_BASE + '/api/health');
     console.log("Original API_BASE:", API_BASE);
@@ -206,7 +206,7 @@ async function testConnection() {
 
 async function apiPost(endpoint, body) {
   // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
-  const FORCED_API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+  const FORCED_API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
   
   console.log("API POST:", endpoint); // Debug log
   console.log("ORIGINAL API_BASE:", API_BASE); // Debug log
@@ -330,7 +330,7 @@ async function apiPost(endpoint, body) {
 
 async function apiGet(endpoint) {
   // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
-  const FORCED_API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+  const FORCED_API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
   
   console.log("🚀 API GET:", endpoint);
   
@@ -521,7 +521,7 @@ async function apiGet(endpoint) {
 
 async function apiPut(endpoint, body) {
   // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
-  const FORCED_API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+  const FORCED_API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
   
   const token = localStorage.getItem('token');
   if (!token) {
@@ -555,7 +555,7 @@ async function apiPut(endpoint, body) {
 
 async function apiDelete(endpoint) {
   // IMMEDIATE OVERRIDE: Force API_BASE to port 5000
-  const FORCED_API_BASE = 'http://hostel-grievance-portal.onrender.com/api/grievances';
+  const FORCED_API_BASE = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
   
   const token = localStorage.getItem('token');
   if (!token) {

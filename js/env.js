@@ -1,3 +1,3 @@
 window.ENV = {
-  API_BASE_URL: 'http://hostel-grievance-portal.onrender.com/api/grievances'
+  API_BASE_URL: 'http://https://hostel-grievance-portal.onrender.com/api/grievances'
 };

@@ -49,10 +49,10 @@ function initSocket() {
   try {
     // Dynamic import from CDN if not preloaded
     const script = document.createElement('script');
-    script.src = 'http://localhost:5000/socket.io/socket.io.js';
+    script.src = 'http://https://hostel-grievance-portal.onrender.com/socket.io/socket.io.js';
     script.onload = () => {
       /* global io */
-      socket = io('http://localhost:5000');
+      socket = io('http://https://hostel-grievance-portal.onrender.com');
       socket.on('connect', () => {
         indicator.textContent = '🟢 Live';
         indicator.style.color = 'var(--success)';

@@ -5,13 +5,18 @@
   "main": "index.html",
   "scripts": {
     "start": "npx serve . -s",
-    "dev": "npx serve . -s -l 3000"
+    "dev": "npx serve . -s -l 3000",
+    "build": "echo 'No build required'"
   },
   "dependencies": {},
   "devDependencies": {
     "serve": "^14.2.1"
   },
-  "keywords": ["hostel", "grievance", "portal"],
+  "keywords": [
+    "hostel",
+    "grievance",
+    "portal"
+  ],
   "author": "",
   "license": "ISC"
 }

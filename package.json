@@ -1,37 +1,22 @@
 {
-<<<<<<< HEAD
   "name": "hostel-grievance-portal-frontend",
   "version": "1.0.0",
   "description": "Frontend for Hostel Grievance Portal",
   "main": "index.html",
   "scripts": {
     "start": "npx serve . -s",
-    "dev": "npx serve . -s -l 3000"
+    "dev": "npx serve . -s -l 3000",
+    "build": "echo 'No build required'"
   },
   "dependencies": {},
   "devDependencies": {
     "serve": "^14.2.1"
   },
-  "keywords": ["hostel", "grievance", "portal"],
+  "keywords": [
+    "hostel",
+    "grievance",
+    "portal"
+  ],
   "author": "",
   "license": "ISC"
-=======
-  "name": "backend",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.1",
-    "express": "^4.22.1",
-    "express-rate-limit": "^8.3.2",
-    "express-validator": "^7.3.2",
-    "helmet": "^8.1.0",
-    "mysql2": "^3.20.0",
-    "socket.io": "^4.8.1"
-  }
->>>>>>> 831727231d54474829192e31f748d733091a4069
 }

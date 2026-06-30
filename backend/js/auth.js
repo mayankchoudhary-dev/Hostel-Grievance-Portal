@@ -2,7 +2,7 @@
 // =============================================================
 
 // API_BASE will be set in index.html
-const API_BASE = window.API_BASE || 'http://https://hostel-grievance-portal.onrender.com';
+const API_BASE = window.API_BASE || 'https://hostel-grievance-portal.onrender.com';
 
 // Connection pool for better reliability
 const connectionPool = {
@@ -430,7 +430,7 @@ function logout() {
   
   // Try multiple redirect methods in order of preference
   const redirects = [
-    'http://https://hostel-grievance-portal.onrender.com/index.html',  // Preferred: Frontend server
+    'https://hostel-grievance-portal.onrender.com/index.html',  // Preferred: Frontend server
     'http://127.0.0.1:5000/index.html', // Alternative: localhost IP
     'index.html',  // Fallback: Direct file
     '../index.html',  // Another fallback: Relative path

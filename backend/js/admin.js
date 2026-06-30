@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
-  const backendUrl = window.API_BASE || 'http://https://hostel-grievance-portal.onrender.com';
+  const backendUrl = window.API_BASE || 'https://hostel-grievance-portal.onrender.com';
   script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */

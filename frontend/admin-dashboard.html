@@ -38,7 +38,7 @@
     }
     
     // Force API_BASE to 5000
-    window.API_BASE = 'http://https://hostel-grievance-portal.onrender.com';
+    window.API_BASE = 'https://hostel-grievance-portal.onrender.com';
     console.log('🧹 Admin Dashboard: Cleared all caches, set API_BASE to:', window.API_BASE);
   </script>
 </head>
@@ -289,7 +289,7 @@ async function quickTest() {
   try {
     // Test ping endpoint
     console.log("🔍 Testing ping endpoint...");
-    const pingResponse = await fetch('http://https://hostel-grievance-portal.onrender.com/api/ping');
+    const pingResponse = await fetch('https://hostel-grievance-portal.onrender.com/api/ping');
     
     if (pingResponse.ok) {
       const data = await pingResponse.json();

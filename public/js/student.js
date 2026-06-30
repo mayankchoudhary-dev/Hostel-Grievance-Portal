@@ -50,7 +50,7 @@ function initSocket() {
     // Dynamic import from CDN if not preloaded
     const script = document.createElement('script');
     // Force Socket.IO to use port 5000 regardless of cached values
-    const backendUrl = 'http://https://hostel-grievance-portal.onrender.com';
+    const backendUrl = 'https://hostel-grievance-portal.onrender.com';
     script.src = backendUrl + '/socket.io/socket.io.js';
     script.onload = () => {
       /* global io */

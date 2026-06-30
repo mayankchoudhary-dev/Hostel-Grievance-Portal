@@ -105,7 +105,7 @@ function initSocket() {
   const indicator = document.getElementById('socketIndicator');
   const script = document.createElement('script');
   // Force Socket.IO to use port 5000 regardless of cached values
-  const backendUrl = 'http://https://hostel-grievance-portal.onrender.com/api/grievances';
+  const backendUrl = 'https://hostel-grievance-portal.onrender.com/api/grievances';
   script.src = backendUrl + '/socket.io/socket.io.js';
   script.onload = () => {
     /* global io */

@@ -148,7 +148,7 @@ async function testAPIConnectivity() {
   // Try ping endpoint first (simplest)
   try {
     console.log("🔍 Test 0a: Ping endpoint...");
-    const pingResponse = await fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/ping', {
+    const pingResponse = await fetch('https://hostel-grievance-portal.onrender.com/api/grievances/api/ping', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -168,7 +168,7 @@ async function testAPIConnectivity() {
   if (!serverRunning) {
     try {
       console.log("🔍 Test 0b: Test endpoint...");
-      const testResponse = await fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/test', {
+      const testResponse = await fetch('https://hostel-grievance-portal.onrender.com/api/grievances/api/test', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -189,7 +189,7 @@ async function testAPIConnectivity() {
   if (!serverRunning) {
     try {
       console.log("🔍 Test 0c: Health endpoint...");
-      const healthResponse = await fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+      const healthResponse = await fetch('https://hostel-grievance-portal.onrender.com/api/health', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -217,7 +217,7 @@ async function testAPIConnectivity() {
   // Test 1: Direct fetch without auth
   try {
     console.log("🔍 Test 1: Direct fetch to health endpoint...");
-    const response = await fetch('http://https://hostel-grievance-portal.onrender.com/api/grievances/api/health', {
+    const response = await fetch('https://hostel-grievance-portal.onrender.com/api/health', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

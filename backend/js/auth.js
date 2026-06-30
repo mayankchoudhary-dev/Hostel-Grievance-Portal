@@ -319,7 +319,7 @@ async function apiDelete(endpoint) {
 }
 
 async function apiPostForm(url, formData) {
-  const res = await fetch("http://https://hostel-grievance-portal.onrender.com" + url, {
+  const res = await /https://hostel-grievance-portal.onrender.com" + url, {
     method: "POST",
     headers: {
       Authorization: "Bearer " + localStorage.getItem("token") // 🔥 FIX
